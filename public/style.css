@@ -73,10 +73,10 @@ select {
     appearance: none;
 }
 
-button:hover {
+/* button:hover {
     background-color: var(--accent);
     color: white;
-}
+} */
 
 .lang-wrapper {
     display: flex;
