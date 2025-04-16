@@ -1,43 +1,43 @@
 :root {
-    --bg: #282a36;
-    --text: #f8f8f2;
-    --border: #44475a;
-    --button-bg: #44475a;
-    --input-bg: #1e1f29;
-    --accent: #bd93f9;
-  }
-  
-  body {
+    --bg: #f5f5f7;
+    --text: #333340;
+    --border: #d0d0d8;
+    --button-bg: #e8e8ec;
+    --input-bg: #ffffff;
+    --accent: #9370db;
+}
+
+body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     background-color: var(--bg);
     color: var(--text);
     transition: background 0.3s ease, color 0.3s ease;
-  }
-  
-  .container {
+}
+
+.container {
     max-width: 900px;
     margin: auto;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
-  }
-  
-  header, footer {
+}
+
+header, footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-  }
-  
-  .controls {
+}
+
+.controls {
     display: flex;
     gap: 12px;
     align-items: center;
-  }
-  
-  textarea {
+}
+
+textarea {
     width: 100%;
     height: 120px;
     font-size: 16px;
@@ -49,14 +49,14 @@
     resize: vertical;
     transition: border 0.2s ease;
     margin-bottom: 5px;
-  }
-  
-  textarea:focus {
+}
+
+textarea:focus {
     border-color: var(--accent);
     outline: none;
-  }
-  
-  button, select {
+}
+
+button, select {
     padding: 10px 16px;
     background: var(--button-bg);
     color: var(--text);
@@ -65,167 +65,169 @@
     font-size: 14px;
     border-radius: 6px;
     transition: background 0.2s ease;
-  }
-  
-  select {
+}
+
+select {
     background-color: var(--button-bg);
     color: var(--text);
     appearance: none;
-  }
-  
-  button:hover {
+}
+
+button:hover {
     background-color: var(--accent);
-    /* color: var(--bg); */
-  }
-  
-  .lang-wrapper {
+    color: white;
+}
+
+.lang-wrapper {
     display: flex;
     align-items: center;
     gap: 6px;
-  }
-  
-  .lang-wrapper img {
+}
+
+.lang-wrapper img {
     width: 20px;
     height: 14px;
     border: 1px solid var(--border);
     border-radius: 2px;
-  }
-  
-  .diagram-box {
+}
+
+.diagram-box {
     border: 2px dashed var(--border);
-    height: 400px;
+    width: 500px; 
+    height: 500px;
     border-radius: 6px;
     background: var(--input-bg);
     transition: transform 0.5s ease;
     margin-top: 10px;
-  }
+}
 
-  #output {
+#output {
     margin-top: 30px;
     font-style: italic;
     text-align: left;
-    background: #111;
+    background: #f0f0f2;
+    color: #333;
     padding: 15px;
     border-radius: 5px;
     white-space: pre-wrap;
-  }
-  
-  .hidden {
+}
+
+.hidden {
     display: none;
-  }
-  
-  .button-group {
+}
+
+.button-group {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
-  }
-  
-  .markdown {
+}
+
+.markdown {
     font-family: monospace;
-    color: #e6e6e6;
-  }
-  
-  /* Animations */
-  .fade-in {
+    color: #333;
+}
+
+/* Animations */
+.fade-in {
     animation: fadeIn 0.7s ease;
-  }
-  .scale-in {
+}
+.scale-in {
     animation: scaleIn 0.5s ease;
-  }
-  
-  @keyframes fadeIn {
+}
+
+@keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes scaleIn {
+}
+
+@keyframes scaleIn {
     from { transform: scale(0.95); opacity: 0.5; }
     to { transform: scale(1); opacity: 1; }
-  }
-  
-  /* Footer */
-  footer {
+}
+
+/* Footer */
+footer {
     margin-top: 40px;
     text-align: center;
     font-size: 14px;
     color: var(--text);
-  }
-  footer p {
+}
+footer p {
     width: 100%;
     margin: 0;
     text-align: center;
-  }
-  footer a {
+}
+footer a {
     color: var(--accent);
     text-decoration: none;
-  }
-  footer a:hover {
+}
+footer a:hover {
     text-decoration: underline;
-  }
-  footer svg {
+}
+footer svg {
     width: 16px;
     height: 16px;
     vertical-align: middle;
     margin-right: 4px;
-  }
-  
-  /* Responsive */
-  @media (max-width: 600px) {
+}
+
+/* Responsive */
+@media (max-width: 600px) {
     .controls {
-      flex-direction: column;
-      align-items: flex-start;
+        flex-direction: column;
+        align-items: flex-start;
     }
-  
+
     header, footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
-  }
+}
 
-  /* Add these styles to your existing CSS file */
+/* Add these styles to your existing CSS file */
 
-  .loading-spinner {
+.loading-spinner {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     margin: 20px 0;
-  }
-  
-  .spinner {
+}
+
+.spinner {
     width: 40px;
     height: 40px;
     border: 4px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     border-top-color: #3498db;
     animation: spin 1s ease-in-out infinite;
-  }
-  
-  @keyframes spin {
+}
+
+@keyframes spin {
     to {
         transform: rotate(360deg);
     }
-  }
-  
-  .hidden {
+}
+
+.hidden {
     display: none;
-  }
-  
-  button:disabled {
+}
+
+button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-  }
+}
 
-  /* Button loading styles */
-  .btn-loading {
+/* Button loading styles */
+.btn-loading {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-  }
+}
 
-  .btn-spinner {
+.btn-spinner {
     display: inline-block;
     width: 16px;
     height: 16px;
@@ -233,24 +235,24 @@
     border-radius: 50%;
     border-top-color: white;
     animation: spin 0.8s linear infinite;
-  }
+}
 
-  @keyframes spin {
+@keyframes spin {
     to {
         transform: rotate(360deg);
     }
-  }
+}
 
-  /* When loading, hide the original text */
-  button.is-loading .btn-text {
+/* When loading, hide the original text */
+button.is-loading .btn-text {
     display: none;
-  }
+}
 
-  button.is-loading .btn-loading {
+button.is-loading .btn-loading {
     display: flex;
-  }
+}
 
-  /* Button styles */
+/* Button styles */
 .button-group {
     display: flex;
     gap: 10px;
@@ -271,13 +273,13 @@
 
 /* Primary button - Generate */
 .btn-primary {
-    background-color: #4361ee;
+    background-color: #7c60dd;
     color: white;
     border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #3a56d4;
+    background-color: #6a4fd0;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -285,13 +287,13 @@
 /* Secondary button - Show Code */
 .btn-secondary {
     background-color: transparent;
-    color: #e0e0e0;
-    border: 1px solid #606060;
+    color: #555;
+    border: 1px solid #aaa;
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: #909090;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: #888;
 }
 
 /* Danger button - Clear */
@@ -299,15 +301,6 @@
     background-color: #e63946;
     color: white;
     border: none;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background-color: #d62c39;
-}
-
-.btn-icon {
-    width: 16px;
-    height: 16px;
 }
 
 /* Dark theme adjustments */

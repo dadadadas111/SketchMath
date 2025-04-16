@@ -7,6 +7,9 @@
     <title>SketchMath</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.js"></script>
+
 </head>
 
 <body class="dark">
@@ -47,7 +50,7 @@
             <div id="outputContainer" class="hidden">
                 <p id="output" class="markdown"></p>
             </div>
-            <div id="diagram" class="diagram-box scale-in"></div>
+            <div id="jxgbox" class="diagram-box"></div>
         </main>
 
         <footer>
