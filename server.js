@@ -24,11 +24,11 @@ app.post("/api/gemini", async (req, res) => {
         let prompt = `
 You are a geometry assistant.
 
-Given a high school geometry problem, output **ONLY** valid JavaScript code that draws the diagram using the JSXGraph library.
+Given a geometry problem, output **ONLY** valid JavaScript code that draws the diagram using the JSXGraph library.
 
-## Rules to Follow:
-- Do **NOT** initialize the board (assume it's already created as 'board')
-- Use only:
+## Rules:
+- Do **NOT** initialize the board (it's already created as 'board')
+- Use:
   - board.create('point', [x, y], {name: 'A'})
   - board.create('segment', [A, B])
   - board.create('line', [A, B])
@@ -45,14 +45,14 @@ Given a high school geometry problem, output **ONLY** valid JavaScript code that
             prompt += `
 
 ## Previous Code
-I already have some JSXGraph code that creates part of my diagram. I want you to build upon this code to incorporate the new elements I'm requesting. Here's my existing code:
+I have JSXGraph code that creates part of my diagram. I want you to build upon it to incorporate the new elements I'm requesting. Here's the code:
 \`\`\`javascript
 ${previousCode}
 \`\`\`
 
-Try to reuse existing elements where appropriate. Only add new elements that are needed to address my new requirements. Keep existing variable names and coordinate systems consistent.`;
-        } else {
-            // Include example output only for new diagrams
+Try to keep existing elements, delete when the problem asked you to. Only add new elements that are needed to address my new requirements. Keep existing variable names and coordinate systems consistent.`;
+        } 
+            // Include example output
             prompt += `
 
 ## Example Output:
@@ -100,7 +100,6 @@ var T2 = board.create('intersection', [circleO, circleAux, 1], {name: 'T2'});
 
 var tangent1 = board.create('segment', [P, T1], {color: 'green'});
 var tangent2 = board.create('segment', [P, T2], {color: 'green'});`;
-        }
 
         prompt += `
 
@@ -109,7 +108,9 @@ Problem:
 
         const result = await model.generateContent(prompt);
         const text = result.response.text();
-        console.log("Gemini response:", text);
+        console.log("prompt", prompt);
+        console.debug("result", text);
+        // console.log("result", text);
         // Remove markdown code block delimiters
         let js = text.replace(/```(js|javascript)?|```/g, "").trim();
         res.send({ result: js });

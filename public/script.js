@@ -58,8 +58,10 @@ document.getElementById("toggleCodeBtn").addEventListener("click", () => {
   }
 });
 
-// Store previous diagram code
+// Store previous diagram code and successful code
 let previousCode = "";
+let lastSuccessfulCode = "";
+let lastSuccessfulBoard = null;
 
 // Modified askGemini function to include previous code
 async function askGemini(inputText, outputElement) {
@@ -83,7 +85,15 @@ async function askGemini(inputText, outputElement) {
       // Save the current code for potential future use
       previousCode = cleanCode;
       
-      runJSXGraph(cleanCode);
+      // Try to run the new code, but keep previous successful state if it fails
+      if (!runJSXGraph(cleanCode)) {
+        // If drawing failed, restore last successful code in the output
+        if (lastSuccessfulCode) {
+          console.log("Drawing failed, restoring previous successful diagram");
+          outputElement.innerHTML = marked.parse("```javascript\n" + lastSuccessfulCode + "\n```");
+          previousCode = lastSuccessfulCode; // Keep using last successful code
+        }
+      }
       
       // Enable the export button when diagram is successfully generated
       document.getElementById('exportBtn').disabled = false;
@@ -99,20 +109,48 @@ async function askGemini(inputText, outputElement) {
 
 function runJSXGraph(code) {
   const container = document.getElementById("jxgbox");
-  container.innerHTML = ""; // Clear previous content
-
-  const board = JXG.JSXGraph.initBoard("jxgbox", {
-    boundingbox: [-10, 10, 10, -10],
-    axis: false // Disable axis
-  });
-
+  
+  // Create a temporary invisible container to test the code
+  const testContainer = document.createElement('div');
+  testContainer.style.display = 'none';
+  testContainer.id = 'test-jxgbox';
+  document.body.appendChild(testContainer);
+  
   try {
-    // Run the Gemini-generated JSXGraph code
+    // Try to run the new code in test container first
+    const testBoard = JXG.JSXGraph.initBoard("test-jxgbox", {
+      boundingbox: [-10, 10, 10, -10],
+      axis: false
+    });
+    
     const f = new Function("board", code);
+    f(testBoard);
+    
+    // If successful, update the real container
+    container.innerHTML = "";
+    const board = JXG.JSXGraph.initBoard("jxgbox", {
+      boundingbox: [-10, 10, 10, -10],
+      axis: false
+    });
+    
     f(board);
+    
+    // Store the successful code and board state
+    lastSuccessfulCode = code;
+    lastSuccessfulBoard = board;
+    
+    // Cleanup test container
+    document.body.removeChild(testContainer);
+    return true;
   } catch (err) {
     console.error("JSXGraph code error:", err);
-    alert("Failed to render JSXGraph jxgbox.");
+    alert("Failed to render diagram. Keeping previous diagram.");
+    
+    // Cleanup test container
+    document.body.removeChild(testContainer);
+    
+    // Keep the previous diagram (do nothing to the container)
+    return false;
   }
 }
 
