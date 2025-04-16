@@ -37,14 +37,36 @@ Extract all drawable geometric elements (points, lines, circles) and return a JS
   "circles": [ { "center": "O", "radius": 50 }, ... ]
 }
 
-If positions aren’t given, estimate them clearly. Do not explain anything. 
+Be sure to draw like the description. Do not explain anything. 
 Just return JSON. And the result should be valid and can be parsed JSON.
-dont need the markdown code block.
+dont need the markdown code block. and the diagram drawn from response should be nicely formatted.
 
 `);
         const text = result.response.text();
         // gemini are stupid , so we need to remove ```json and ``` before actually parsing it
-        let jsonText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        // let jsonText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        let jsonText = `{
+  "points": [
+    { "label": "A", "x": 100, "y": 300 },
+    { "label": "B", "x": 100, "y": 200 },
+    { "label": "C", "x": 250, "y": 300 },
+    { "label": "H", "x": 175, "y": 250 },
+    { "label": "D", "x": 100, "y": 120 },
+    { "label": "E", "x": 230, "y": 300 },
+    { "label": "F", "x": 200, "y": 250 }
+  ],
+  "lines": [
+    { "from": "A", "to": "B" },
+    { "from": "A", "to": "C" },
+    { "from": "B", "to": "C" },
+    { "from": "A", "to": "H" },
+    { "from": "D", "to": "E" },
+    { "from": "E", "to": "F" },
+    { "from": "D", "to": "F" }
+  ],
+  "circles": []
+}
+`
 
         try {
             // Validate the JSON is parseable

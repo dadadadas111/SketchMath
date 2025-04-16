@@ -68,6 +68,8 @@ async function askGemini(inputText, outputElement) {
     const data = await res.json();
     if (data.result) {
       outputElement.innerHTML = marked.parse(data.result);
+      const parsed = JSON.parse(data.result);
+      drawDiagramFromJSON(parsed);
     } else {
       alert("No result.");
     }
@@ -76,6 +78,58 @@ async function askGemini(inputText, outputElement) {
     alert("Error connecting to Gemini server.");
   }
 }
+
+function drawDiagramFromJSON(json) {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const diagram = document.getElementById("diagram");
+  diagram.innerHTML = ""; // clear previous drawing
+
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", 500);
+  svg.setAttribute("height", 500);
+  svg.setAttribute("viewBox", "0 0 500 500");
+
+  const pointMap = {};
+
+  // Draw points first
+  json.points?.forEach(pt => {
+    pointMap[pt.label] = pt;
+
+    const circle = document.createElementNS(svgNS, "circle");
+    circle.setAttribute("cx", pt.x);
+    circle.setAttribute("cy", pt.y);
+    circle.setAttribute("r", 5);
+    circle.setAttribute("fill", "#ff79c6");
+    svg.appendChild(circle);
+
+    const label = document.createElementNS(svgNS, "text");
+    label.setAttribute("x", pt.x + 6);
+    label.setAttribute("y", pt.y - 6);
+    label.setAttribute("fill", "#f8f8f2");
+    label.setAttribute("font-size", "14");
+    label.textContent = pt.label;
+    svg.appendChild(label);
+  });
+
+  // Draw lines
+  json.lines?.forEach(line => {
+    const p1 = pointMap[line.from];
+    const p2 = pointMap[line.to];
+    if (!p1 || !p2) return;
+
+    const svgLine = document.createElementNS(svgNS, "line");
+    svgLine.setAttribute("x1", p1.x);
+    svgLine.setAttribute("y1", p1.y);
+    svgLine.setAttribute("x2", p2.x);
+    svgLine.setAttribute("y2", p2.y);
+    svgLine.setAttribute("stroke", "#50fa7b");
+    svgLine.setAttribute("stroke-width", "2");
+    svg.appendChild(svgLine);
+  });
+
+  diagram.appendChild(svg);
+}
+
 
 // Dark mode = default Dracula
 document.body.classList.add("dark");
