@@ -2,12 +2,15 @@
     "en": {
       "title": "SketchMath",
       "generateBtn": "Generate Diagram",
-      "inputPlaceholder": "Enter geometry problem in Vietnamese or English..."
+      "inputPlaceholder": "Enter geometry problem in Vietnamese or English...",
+      "showCodeBtn": "Show Code",
+      "hideCodeBtn": "Hide Code"
     },
     "vi": {
       "title": "SketchMath",
       "generateBtn": "Tạo hình",
-      "inputPlaceholder": "Nhập đề bài toán hình học bằng tiếng Việt hoặc tiếng Anh..."
+      "inputPlaceholder": "Nhập đề bài toán hình học bằng tiếng Việt hoặc tiếng Anh...",
+      "showCodeBtn": "Hiển thị mã",
+      "hideCodeBtn": "Ẩn mã"
     }
   }
-  

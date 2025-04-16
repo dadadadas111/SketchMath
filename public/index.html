@@ -26,7 +26,13 @@
 
         <main>
             <textarea id="inputText" placeholder="" data-i18n-placeholder="inputPlaceholder"></textarea>
-            <button id="generateBtn" data-i18n="generateBtn">Generate Diagram</button>
+            <div class="button-group">
+                <button id="generateBtn" data-i18n="generateBtn">Generate Diagram</button>
+                <button id="toggleCodeBtn" data-i18n="showCodeBtn">Show Code</button>
+            </div>
+            <div id="outputContainer" class="hidden">
+                <p id="output" class="markdown"></p>
+            </div>
             <div id="diagram" class="diagram-box scale-in"></div>
         </main>
 
@@ -39,7 +45,7 @@
             </p>
         </footer>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script.js"></script>
     <script>
         lucide.createIcons();

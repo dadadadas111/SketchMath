@@ -99,6 +99,31 @@
     transition: transform 0.5s ease;
     margin-top: 10px;
   }
+
+  #output {
+    margin-top: 30px;
+    font-style: italic;
+    text-align: left;
+    background: #111;
+    padding: 15px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .markdown {
+    font-family: monospace;
+    color: #e6e6e6;
+  }
   
   /* Animations */
   .fade-in {
@@ -157,4 +182,3 @@
       gap: 8px;
     }
   }
-  
