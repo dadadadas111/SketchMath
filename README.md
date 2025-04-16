@@ -1,6 +1,6 @@
 # 🔢 SketchMath
 
-![SketchMath Banner](https://via.placeholder.com/800x200/9370db/ffffff?text=SketchMath)
+![SketchMath Banner](banner.webp)
 
 > Turn your geometry problems into interactive diagrams with AI
 
