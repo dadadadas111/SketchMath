@@ -36,7 +36,6 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
   const input = document.getElementById("inputText").value;
   const output = document.getElementById("output");
   console.log("Input text:", input);
-  // alert("Next step: send to Gemini and draw!");
   if (input) {
     output.textContent = "Cooking up... please wait...";
     await askGemini(input, output);
@@ -69,7 +68,6 @@ async function askGemini(inputText, outputElement) {
     const data = await res.json();
     if (data.result) {
       outputElement.innerHTML = marked.parse(data.result);
-      // document.getElementById("diagram").innerText = data.result;
     } else {
       alert("No result.");
     }

@@ -44,12 +44,21 @@ dont need the markdown code block.
 `);
         const text = result.response.text();
         // gemini are stupid , so we need to remove ```json and ``` before actually parsing it
-        const jsonText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        let jsonText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        try {
+            // Validate the JSON is parseable
+            JSON.parse(jsonText);
+        } catch (jsonError) {
+            console.error("Invalid JSON response:", jsonText);
+            return res.status(500).send({ error: "Invalid response format from AI model." });
+        }
+
         // console.log("Gemini response:", jsonText);
         res.send({ result: jsonText });
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: "Gemini failed." });
+        res.status(500).send({ error: "AI processing failed. Please try again or simplify your input." });
     }
 });
 
