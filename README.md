@@ -10,6 +10,10 @@ SketchMath is a nifty little web app that uses AI to transform written geometry 
 
 Whether you're a student struggling with homework, a teacher preparing visual aids, or just a math enthusiast, SketchMath makes visualizing geometry problems quick and painless.
 
+## 🌐 Live Demo
+
+**Try it now:** [https://sketchmath.onrender.com/](https://sketchmath.onrender.com/)
+
 ## 🚀 Features
 
 - 💬 **Text-to-Diagram Conversion**: Describe your geometry problem, and let AI do the drawing
