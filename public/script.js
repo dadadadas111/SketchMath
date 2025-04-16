@@ -70,6 +70,10 @@ async function askGemini(inputText, outputElement) {
       outputElement.innerHTML = marked.parse(data.result);
       const cleanCode = data.result.trim().replace(/```(js|javascript)?|```/g, "");
       runJSXGraph(cleanCode);
+      
+      // Enable the export button when diagram is successfully generated
+      document.getElementById('exportBtn').disabled = false;
+      document.getElementById('toggleCodeBtn').disabled = false;
     } else {
       alert("No result.");
     }
@@ -188,10 +192,53 @@ document.addEventListener('DOMContentLoaded', function () {
   const generateBtn = document.getElementById('generateBtn');
   const toggleCodeBtn = document.getElementById('toggleCodeBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const exportBtn = document.getElementById('exportBtn');
   const inputText = document.getElementById('inputText');
   const jxgbox = document.getElementById('jxgbox');
   const outputContainer = document.getElementById('outputContainer');
   const loadingSpinner = document.getElementById('loadingSpinner');
+
+  // Export PNG functionality
+  exportBtn.addEventListener('click', function() {
+    exportDiagramAsPNG();
+  });
+
+  // Function to export diagram as PNG
+  function exportDiagramAsPNG() {
+    // Create a loading state
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<i data-lucide="loader" class="btn-icon animate-spin"></i><span>Exporting...</span>';
+    lucide.createIcons(); // Refresh icons
+
+    // Use html2canvas to capture the JSXGraph board
+    html2canvas(document.getElementById('jxgbox'), {
+      backgroundColor: null, // Transparent background
+      scale: 2 // Higher resolution
+    }).then(function(canvas) {
+      // Create a download link
+      const link = document.createElement('a');
+      link.download = 'sketchmath-diagram.png';
+      link.href = canvas.toDataURL('image/png');
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Reset button state
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = '<i data-lucide="download" class="btn-icon"></i><span>Export PNG</span>';
+      lucide.createIcons(); // Refresh icons
+    }).catch(function(error) {
+      console.error('Error exporting diagram:', error);
+      alert('Failed to export diagram. Please try again.');
+      
+      // Reset button state
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = '<i data-lucide="download" class="btn-icon"></i><span>Export PNG</span>';
+      lucide.createIcons(); // Refresh icons
+    });
+  }
 
   // Clear button functionality
   clearBtn.addEventListener('click', function () {
@@ -204,12 +251,50 @@ document.addEventListener('DOMContentLoaded', function () {
     // Hide output if visible
     outputContainer.classList.add('hidden');
 
-    // Disable toggle code button as there's no code to show
+    // Disable toggle code and export buttons
     toggleCodeBtn.disabled = true;
+    exportBtn.disabled = true;
 
     // Focus on input area
     inputText.focus();
   });
 
   // Existing generate button event listener and other code...
+});
+
+// Modify the existing generateBtn click event to enable the export button
+document.addEventListener('DOMContentLoaded', function () {
+  const generateBtn = document.getElementById('generateBtn');
+  const toggleCodeBtn = document.getElementById('toggleCodeBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+
+  generateBtn.addEventListener('click', async function () {
+    const inputText = document.getElementById('inputText').value;
+    if (!inputText.trim()) return;
+
+    // Show loading state
+    generateBtn.classList.add('is-loading');
+    generateBtn.disabled = true;
+    loadingSpinner.classList.remove('hidden');
+
+    try {
+      // Your API fetch code here
+      // Simulate API call with timeout for testing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Process response
+      toggleCodeBtn.disabled = false; // Enable toggle code button when response has code
+      exportBtn.disabled = false; // Enable export button when diagram is generated
+
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error 
+    } finally {
+      // Reset loading state
+      generateBtn.classList.remove('is-loading');
+      generateBtn.disabled = false;
+      loadingSpinner.classList.add('hidden');
+    }
+  });
 });

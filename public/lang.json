@@ -4,13 +4,21 @@
       "generateBtn": "Generate Diagram",
       "inputPlaceholder": "Enter geometry problem in Vietnamese or English...",
       "showCodeBtn": "Show Code",
-      "hideCodeBtn": "Hide Code"
+      "hideCodeBtn": "Hide Code",
+      "exportBtn": "Export PNG",
+      "generating": "Generating...",
+      "loading": "Loading...",
+      "exporting": "Exporting..."
     },
     "vi": {
       "title": "SketchMath",
       "generateBtn": "Tạo hình",
       "inputPlaceholder": "Nhập đề bài toán hình học bằng tiếng Việt hoặc tiếng Anh...",
       "showCodeBtn": "Hiển thị mã",
-      "hideCodeBtn": "Ẩn mã"
+      "hideCodeBtn": "Ẩn mã",
+      "exportBtn": "Xuất PNG",
+      "generating": "Đang tạo...",
+      "loading": "Đang tải...",
+      "exporting": "Đang xuất..."
     }
   }

@@ -39,25 +39,51 @@ Given a high school geometry problem, output **ONLY** valid JavaScript code that
 - Based on the problem Use segment Instead of line Where Appropriate. I prefer dont make the line longer than needed.
 
 ## Example Output:
+// Basic points
 var A = board.create('point', [0, 0], {name: 'A'});
-var B = board.create('point', [5, 0], {name: 'B'});
-var C = board.create('point', [0, 4], {name: 'C'});
+var B = board.create('point', [6, 0], {name: 'B'});
+var C = board.create('point', [2, 5], {name: 'C'});
 
-var AB = board.create('segment', [A, B]);
-var AC = board.create('segment', [A, C]);
-var BC = board.create('segment', [B, C]);
+// Triangle sides
+var AB = board.create('segment', [A, B], {name: 'AB'});
+var BC = board.create('segment', [B, C], {name: 'BC'});
+var CA = board.create('segment', [C, A], {name: 'CA'});
 
-// Create a hidden full line BC for construction
+// Full lines (for construction, hidden)
 var lineBC = board.create('line', [B, C], {visible: false});
+var lineAC = board.create('line', [A, C], {visible: false});
+var lineAB = board.create('line', [A, B], {visible: false});
 
-// Construct the perpendicular from A to BC (hidden)
+// Perpendicular from A to BC
 var perpAH = board.create('perpendicular', [lineBC, A], {visible: false});
+var H = board.create('intersection', [perpAH, lineBC, 0], {name: 'H'});
+var heightAH = board.create('segment', [A, H], {color: 'blue', name: 'AH'});
 
-// Intersection of perpendicular and BC gives point H
-var H = board.create('intersection', [perpAH, BC], {name: 'H'});
+// Midpoint of BC
+var M = board.create('midpoint', [B, C], {name: 'M'});
 
-// Only draw the actual height segment
-var AH = board.create('segment', [A, H]);
+// Circle centered at A passing through C
+var circleAC = board.create('circle', [A, C], {name: 'CircleAC'});
+
+// Intersection of circle with line AB (2 points)
+var int1 = board.create('intersection', [circleAC, lineAB, 0], {name: 'D'});
+var int2 = board.create('intersection', [circleAC, lineAB, 1], {name: 'E'});
+
+// Tangents from external point P to a circle
+var O = board.create('point', [-4, 0], {name: 'O'});
+var P = board.create('point', [1, 5], {name: 'P'});
+var circleO = board.create('circle', [O, 3]);
+
+var OP = board.create('line', [O, P], {visible: false});
+var midOP = board.create('midpoint', [O, P], {visible: false});
+var circleAux = board.create('circle', [midOP, O], {visible: false});
+
+var T1 = board.create('intersection', [circleO, circleAux, 0], {name: 'T1'});
+var T2 = board.create('intersection', [circleO, circleAux, 1], {name: 'T2'});
+
+var tangent1 = board.create('segment', [P, T1], {color: 'green'});
+var tangent2 = board.create('segment', [P, T2], {color: 'green'});
+
 
 Problem:
 "${input}"

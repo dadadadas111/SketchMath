@@ -38,9 +38,12 @@
                     </span>
                 </button>
                 <button id="toggleCodeBtn" class="btn-secondary" data-i18n="showCodeBtn" disabled>Show Code</button>
+                <button id="exportBtn" class="btn-secondary" data-i18n="exportBtn" disabled>
+                    <i data-lucide="download" class="btn-icon"></i>
+                    <span>Export PNG</span>
+                </button>
                 <button id="clearBtn" class="btn-danger" data-i18n="clearBtn">
                     <i data-lucide="trash-2" class="btn-icon"></i>
-                    <span>Clear</span>
                 </button>
             </div>
             <div id="loadingSpinner" class="loading-spinner hidden">
@@ -63,6 +66,7 @@
         </footer>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
     <script>
         lucide.createIcons();
