@@ -58,17 +58,31 @@ document.getElementById("toggleCodeBtn").addEventListener("click", () => {
   }
 });
 
+// Store previous diagram code
+let previousCode = "";
+
+// Modified askGemini function to include previous code
 async function askGemini(inputText, outputElement) {
   try {
+    const usePreviousCode = document.getElementById('continueModeToggle').checked;
+    
     const res = await fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input: inputText })
+      body: JSON.stringify({ 
+        input: inputText,
+        previousCode: usePreviousCode ? previousCode : "" 
+      })
     });
+    
     const data = await res.json();
     if (data.result) {
       outputElement.innerHTML = marked.parse(data.result);
       const cleanCode = data.result.trim().replace(/```(js|javascript)?|```/g, "");
+      
+      // Save the current code for potential future use
+      previousCode = cleanCode;
+      
       runJSXGraph(cleanCode);
       
       // Enable the export button when diagram is successfully generated
@@ -247,6 +261,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clear jxgbox
     jxgbox.innerHTML = '';
+
+    // Reset previous code
+    previousCode = "";
+
+    // Reset toggle to unchecked
+    document.getElementById('continueModeToggle').checked = false;
 
     // Hide output if visible
     outputContainer.classList.add('hidden');

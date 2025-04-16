@@ -8,7 +8,9 @@
       "exportBtn": "Export PNG",
       "generating": "Generating...",
       "loading": "Loading...",
-      "exporting": "Exporting..."
+      "exporting": "Exporting...",
+      "continueMode": "Continue from previous diagram",
+      "clearBtn": "Clear"
     },
     "vi": {
       "title": "SketchMath",
@@ -19,6 +21,8 @@
       "exportBtn": "Xuất PNG",
       "generating": "Đang tạo...",
       "loading": "Đang tải...",
-      "exporting": "Đang xuất..."
+      "exporting": "Đang xuất...",
+      "continueMode": "Tiếp tục từ hình trước",
+      "clearBtn": "Xóa"
     }
   }
