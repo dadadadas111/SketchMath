@@ -93,8 +93,8 @@ button:hover {
 
 .diagram-box {
     border: 2px dashed var(--border);
-    width: 500px; 
-    height: 500px;
+    width: 100%; 
+    aspect-ratio: 1 / 1;
     border-radius: 6px;
     background: var(--input-bg);
     transition: transform 0.5s ease;
@@ -287,7 +287,7 @@ button.is-loading .btn-loading {
 /* Secondary button - Show Code */
 .btn-secondary {
     background-color: transparent;
-    color: #555;
+    color: #181717;
     border: 1px solid #aaa;
 }
 
@@ -303,12 +303,3 @@ button.is-loading .btn-loading {
     border: none;
 }
 
-/* Dark theme adjustments */
-body.dark .btn-secondary {
-    color: #e0e0e0;
-    border-color: #505050;
-}
-
-body.dark .btn-secondary:hover:not(:disabled) {
-    border-color: #808080;
-}

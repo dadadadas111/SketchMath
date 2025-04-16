@@ -9,10 +9,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// app.use(cors());
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -50,10 +47,18 @@ var AB = board.create('segment', [A, B]);
 var AC = board.create('segment', [A, C]);
 var BC = board.create('segment', [B, C]);
 
-var H = board.create('intersection', [
-  board.create('perpendicular', [board.create('line', [B, C]), A]),
-  board.create('segment', [B, C])
-], {name: 'H'});
+// Create a hidden full line BC for construction
+var lineBC = board.create('line', [B, C], {visible: false});
+
+// Construct the perpendicular from A to BC (hidden)
+var perpAH = board.create('perpendicular', [lineBC, A], {visible: false});
+
+// Intersection of perpendicular and BC gives point H
+var H = board.create('intersection', [perpAH, BC], {name: 'H'});
+
+// Only draw the actual height segment
+var AH = board.create('segment', [A, H]);
+
 Problem:
 "${input}"
 
@@ -62,43 +67,6 @@ Problem:
         console.log("Gemini response:", text);
         // gemini are stupid , so we need to remove ```json and ``` before actually parsing it
         let js = text.replace(/```(js|javascript)?|```/g, "").trim();
-//         let js = `
-//         // Points A and B (AB is horizontal, 6cm)
-// var A = board.create('point', [0, 0], {name: 'A'});
-// var B = board.create('point', [6, 0], {name: 'B'});
-
-// // AC is vertical to make triangle right at A
-// var C = board.create('point', [0, 8], {name: 'C'});
-
-// // Triangle sides
-// var AB = board.create('segment', [A, B]);
-// var AC = board.create('segment', [A, C]);
-// var BC = board.create('segment', [B, C]);
-
-// // Height from A to BC (AH)
-// var lineBC = board.create('line', [B, C]);
-// var perpAH = board.create('perpendicular', [lineBC, A]);
-// var H = board.create('intersection', [perpAH, lineBC], {name: 'H'});
-
-// // Midpoint of BC (F), perpendicular bisector of BC
-// var F = board.create('midpoint', [B, C], {name: 'F'});
-// var perpBC = board.create('perpendicular', [lineBC, F]);
-
-// // Intersections of perpendicular bisector with AB and AC
-// var D = board.create('intersection', [perpBC, AB], {name: 'D'});
-// var E = board.create('intersection', [perpBC, AC], {name: 'E'});
-
-// `
-
-        // try {
-        //     // Validate the JSON is parseable
-        //     JSON.parse(js);
-        // } catch (jsonError) {
-        //     console.error("Invalid JSON response:", js);
-        //     return res.status(500).send({ error: "Invalid response format from AI model." });
-        // }
-
-        // console.log("Gemini response:", jsonText);
         res.send({ result: js });
     } catch (err) {
         console.error(err);
