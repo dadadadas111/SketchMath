@@ -45,7 +45,7 @@ dont need the markdown code block.
         const text = result.response.text();
         // gemini are stupid , so we need to remove ```json and ``` before actually parsing it
         const jsonText = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        console.log("Gemini response:", jsonText);
+        // console.log("Gemini response:", jsonText);
         res.send({ result: jsonText });
     } catch (err) {
         console.error(err);
