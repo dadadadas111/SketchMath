@@ -94,11 +94,12 @@ select {
 .diagram-box {
     border: 2px dashed var(--border);
     width: 100%; 
-    aspect-ratio: 1 / 1;
+    height: 500px;
+    max-width: 600px;
+    margin: 20px auto;
     border-radius: 6px;
     background: var(--input-bg);
     transition: transform 0.5s ease;
-    margin-top: 10px;
 }
 
 #output {

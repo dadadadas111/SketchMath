@@ -35,12 +35,25 @@ document.getElementById("langSelect").addEventListener("change", (e) => {
 document.getElementById("generateBtn").addEventListener("click", async () => {
   const input = document.getElementById("inputText").value;
   const output = document.getElementById("output");
-  console.log("Input text:", input);
-  if (input) {
-    output.textContent = "Cooking up... please wait...";
-    await askGemini(input, output);
-  } else {
+  const generateBtn = document.getElementById("generateBtn");
+  const loadingSpinner = document.getElementById("loadingSpinner");
+  
+  if (!input.trim()) {
     alert("Please enter a geometry problem.");
+    return;
+  }
+  
+  // Show loading state
+  generateBtn.disabled = true;
+  loadingSpinner.classList.remove("hidden");
+  output.textContent = "Cooking up... please wait...";
+  
+  try {
+    await askGemini(input, output);
+  } finally {
+    // Hide loading state
+    generateBtn.disabled = false;
+    loadingSpinner.classList.add("hidden");
   }
 });
 
@@ -68,7 +81,7 @@ async function askGemini(inputText, outputElement) {
   try {
     const usePreviousCode = document.getElementById('continueModeToggle').checked;
     
-    const res = await fetch("/api/gemini", {
+    const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
@@ -81,6 +94,8 @@ async function askGemini(inputText, outputElement) {
     if (data.result) {
       outputElement.innerHTML = marked.parse(data.result);
       const cleanCode = data.result.trim().replace(/```(js|javascript)?|```/g, "");
+      
+      console.log("Generated code from Groq:", cleanCode);
       
       // Save the current code for potential future use
       previousCode = cleanCode;
@@ -119,8 +134,10 @@ function runJSXGraph(code) {
   try {
     // Try to run the new code in test container first
     const testBoard = JXG.JSXGraph.initBoard("test-jxgbox", {
-      boundingbox: [-10, 10, 10, -10],
-      axis: false
+      boundingbox: [-8, 8, 8, -8],
+      axis: false,
+      showNavigation: false,
+      showCopyright: false
     });
     
     const f = new Function("board", code);
@@ -129,8 +146,12 @@ function runJSXGraph(code) {
     // If successful, update the real container
     container.innerHTML = "";
     const board = JXG.JSXGraph.initBoard("jxgbox", {
-      boundingbox: [-10, 10, 10, -10],
-      axis: false
+      boundingbox: [-8, 8, 8, -8],
+      axis: false,
+      showNavigation: true,
+      showCopyright: false,
+      pan: {enabled: true, needTwoFingers: false},
+      zoom: {enabled: true, wheel: true}
     });
     
     f(board);
