@@ -32,6 +32,16 @@ document.getElementById("langSelect").addEventListener("change", (e) => {
   applyTranslations();
 });
 
+// Show hint when continue mode is toggled on
+document.getElementById("continueModeToggle").addEventListener("change", (e) => {
+  const hint = document.getElementById("continueHint");
+  if (e.target.checked && lastSuccessfulBoard) {
+    hint.style.display = "inline";
+  } else {
+    hint.style.display = "none";
+  }
+});
+
 document.getElementById("generateBtn").addEventListener("click", async () => {
   const input = document.getElementById("inputText").value;
   const output = document.getElementById("output");
@@ -76,17 +86,145 @@ let previousCode = "";
 let lastSuccessfulCode = "";
 let lastSuccessfulBoard = null;
 
+// Function to extract current board state as code
+function extractBoardState(board) {
+  if (!board) return "";
+  
+  let code = "";
+  const processedIds = new Set();
+  const varNames = new Map(); // Track variable names for references
+  
+  // Helper to format coordinates
+  const formatCoord = (val) => Math.round(val * 100) / 100;
+  
+  // Helper to get variable name for an object
+  const getVarName = (obj) => {
+    if (!obj) return null;
+    if (obj.name && obj.name !== '') return obj.name;
+    return varNames.get(obj.id);
+  };
+  
+  // Process objects in dependency order
+  const orderedTypes = ['point', 'line', 'circle', 'segment', 'polygon'];
+  
+  orderedTypes.forEach(type => {
+    Object.keys(board.objects).forEach(id => {
+      const obj = board.objects[id];
+      if (processedIds.has(id)) return;
+      if (obj.elType !== type) return;
+      
+      // Skip invisible helper objects unless they're needed
+      if (!obj.visProp.visible && !obj.name) return;
+      
+      try {
+        const varName = obj.name || `elem${id}`;
+        varNames.set(obj.id, varName);
+        
+        if (obj.elType === 'point') {
+          // Check if this is a special point type
+          if (obj.type === JXG.OBJECT_TYPE_POINT) {
+            const x = formatCoord(obj.X());
+            const y = formatCoord(obj.Y());
+            const attrs = [];
+            
+            if (obj.name) attrs.push(`name: '${obj.name}'`);
+            
+            // Get label offset if exists
+            if (obj.hasLabel && obj.label) {
+              const labelX = formatCoord(obj.label.X() - obj.X());
+              const labelY = formatCoord(obj.label.Y() - obj.Y());
+              const offsetX = Math.round(labelX * 15);
+              const offsetY = Math.round(labelY * 15);
+              attrs.push(`label: {offset: [${offsetX}, ${offsetY}]}`);
+            }
+            
+            if (obj.visProp.size) attrs.push(`size: ${obj.visProp.size}`);
+            if (obj.visProp.fillcolor && obj.visProp.fillcolor !== '#ff0000') {
+              attrs.push(`fillColor: '${obj.visProp.fillcolor}'`);
+            }
+            if (!obj.visProp.visible) attrs.push(`visible: false`);
+            
+            code += `const ${varName} = board.create('point', [${x}, ${y}], {${attrs.join(', ')}});\n`;
+          }
+          processedIds.add(id);
+        }
+        else if (obj.elType === 'line') {
+          const p1 = getVarName(obj.point1);
+          const p2 = getVarName(obj.point2);
+          if (p1 && p2) {
+            const attrs = [];
+            if (!obj.visProp.visible) attrs.push(`visible: false`);
+            if (obj.visProp.strokecolor) attrs.push(`strokeColor: '${obj.visProp.strokecolor}'`);
+            if (obj.visProp.strokewidth) attrs.push(`strokeWidth: ${obj.visProp.strokewidth}`);
+            if (obj.visProp.dash) attrs.push(`dash: ${obj.visProp.dash}`);
+            
+            const attrsStr = attrs.length > 0 ? `, {${attrs.join(', ')}}` : '';
+            code += `const ${varName} = board.create('line', [${p1}, ${p2}]${attrsStr});\n`;
+            processedIds.add(id);
+          }
+        }
+        else if (obj.elType === 'segment') {
+          const p1 = getVarName(obj.point1);
+          const p2 = getVarName(obj.point2);
+          if (p1 && p2) {
+            const attrs = [];
+            if (obj.visProp.strokecolor) attrs.push(`strokeColor: '${obj.visProp.strokecolor}'`);
+            if (obj.visProp.strokewidth) attrs.push(`strokeWidth: ${obj.visProp.strokewidth}`);
+            if (obj.visProp.dash) attrs.push(`dash: ${obj.visProp.dash}`);
+            
+            const attrsStr = attrs.length > 0 ? `, {${attrs.join(', ')}}` : '';
+            code += `const ${varName} = board.create('segment', [${p1}, ${p2}]${attrsStr});\n`;
+            processedIds.add(id);
+          }
+        }
+        else if (obj.elType === 'circle') {
+          // Handle circles (basic support)
+          if (obj.method === 'pointRadius') {
+            const center = getVarName(obj.center);
+            if (center) {
+              const attrs = [];
+              if (obj.visProp.strokecolor) attrs.push(`strokeColor: '${obj.visProp.strokecolor}'`);
+              if (obj.visProp.strokewidth) attrs.push(`strokeWidth: ${obj.visProp.strokewidth}`);
+              
+              const attrsStr = attrs.length > 0 ? `, {${attrs.join(', ')}}` : '';
+              code += `const ${varName} = board.create('circle', [${center}, ${formatCoord(obj.Radius())}]${attrsStr});\n`;
+              processedIds.add(id);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Could not extract object:', obj.name || obj.id, e);
+      }
+    });
+  });
+  
+  return code;
+}
+
 // Modified askGemini function to include previous code
 async function askGemini(inputText, outputElement) {
   try {
     const usePreviousCode = document.getElementById('continueModeToggle').checked;
+    
+    // If continue mode is on and we have a board, extract current state
+    let codeToSend = "";
+    if (usePreviousCode) {
+      if (lastSuccessfulBoard) {
+        // Extract current board state (with user's manual changes)
+        const extractedState = extractBoardState(lastSuccessfulBoard);
+        codeToSend = extractedState || previousCode; // Fallback to original if extraction fails
+        console.log("Using extracted board state:", codeToSend);
+      } else {
+        codeToSend = previousCode;
+      }
+    }
     
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         input: inputText,
-        previousCode: usePreviousCode ? previousCode : "" 
+        previousCode: codeToSend
       })
     });
     
@@ -155,6 +293,27 @@ function runJSXGraph(code) {
     });
     
     f(board);
+    
+    // Enable label dragging for all labeled elements
+    board.suspendUpdate();
+    Object.keys(board.objects).forEach(function(id) {
+      const obj = board.objects[id];
+      if (obj.hasLabel && obj.label) {
+        // Make the label itself a draggable text element
+        const label = obj.label;
+        label.isDraggable = true;
+        label.on('drag', function() {
+          // Update label offset based on drag position
+          const dx = this.X() - obj.X();
+          const dy = this.Y() - obj.Y();
+        });
+        // Set cursor style
+        if (label.rendNode) {
+          label.rendNode.style.cursor = 'move';
+        }
+      }
+    });
+    board.unsuspendUpdate();
     
     // Store the successful code and board state
     lastSuccessfulCode = code;
