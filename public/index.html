@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SketchMath v2</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.geogebra.org/apps/deployggb.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div class="header-left">
+        <h1>SketchMath <span class="version">v2</span></h1>
+      </div>
+      <div class="header-right">
+        <button id="btn-lang" class="btn-icon" title="Switch language">VI</button>
+        <button id="btn-theme" class="btn-icon" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Main layout -->
+    <main id="main">
+      <!-- Left: GeoGebra canvas -->
+      <section id="canvas-panel">
+        <div id="canvas-toolbar">
+          <button id="btn-rerender" class="btn-tool" data-i18n="rerender">Vẽ lại</button>
+          <button id="btn-clear" class="btn-tool" data-i18n="clear">Xoá tất cả</button>
+          <button id="btn-export" class="btn-tool" data-i18n="export">Xuất PNG</button>
+        </div>
+        <div id="ggb-container">
+          <div id="ggb-element"></div>
+          <div id="ggb-loading" class="loading-overlay">
+            <div class="spinner"></div>
+            <span data-i18n="loadingGeoGebra">Đang tải GeoGebra...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Chat panel -->
+      <section id="chat-panel">
+        <div id="chat-messages">
+          <div class="message system">
+            <p data-i18n="welcome">Xin chào! Nhập bài toán hình học để bắt đầu. Ví dụ: "Cho tam giác ABC vuông tại A, đường cao AH"</p>
+          </div>
+        </div>
+
+        <div id="chat-input-area">
+          <div id="continue-toggle">
+            <label class="toggle-label">
+              <input type="checkbox" id="cb-continue" />
+              <span data-i18n="continueMode">Chế độ tiếp tục</span>
+            </label>
+          </div>
+          <div id="input-row">
+            <textarea id="input-prompt" rows="2" placeholder="Nhập bài toán hình học..." data-i18n-placeholder="inputPlaceholder"></textarea>
+            <button id="btn-send" class="btn-primary" data-i18n="send">Gửi</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Status bar -->
+    <footer id="status-bar">
+      <span id="status-text" data-i18n="ready">Sẵn sàng</span>
+      <span id="status-objects"></span>
+    </footer>
+  </div>
+
+  <script src="construction-compiler.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

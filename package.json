@@ -1,0 +1,15 @@
+{
+  "name": "sketchmath-v2",
+  "version": "2.0.0",
+  "description": "AI-powered interactive geometry diagram generator using GeoGebra",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.77.0"
+  }
+}
