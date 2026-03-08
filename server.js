@@ -182,6 +182,20 @@ RULE 10 — CONTINUE MODE (CRITICAL):
   Example: Canvas has triangle ABC + altitude AH. User says "nội tiếp đường tròn O".
     Correct: ["circleO = Circumcircle(A, B, C)"] — one command, reuses existing A, B, C.
     WRONG: Redefining A=(0,0), B=(6,0), C=(...), Polygon(A,B,C) — these already exist!
+
+RULE 11 — RIGHT ANGLE CONSTRUCTION:
+  When a right angle at a vertex is required (e.g., "vuông tại A", "right angle at A"):
+  ⚠️ NEVER guess or manually calculate coordinates for the right-angle vertex.
+  Use this formula (derived from Thales' theorem):
+    Place the other two vertices on the baseline: P1 = (0, 0), P2 = (d, 0)
+    Right-angle vertex = (1, sqrt(d - 1))   ← ALWAYS correct
+  Example: right angle at A, baseline BC with d=6:
+    B = (0, 0), C = (6, 0), A = (1, sqrt(5))
+    Proof: AB·AC = (0-1)(6-1) + (0-√5)(0-√5) = -5 + 5 = 0 ✓
+  Common WRONG coordinates (DO NOT USE):
+    A = (0, 4) → right angle is at B, NOT A
+    A = (1.5, 3) → angle at A ≈ 79°, NOT 90°
+    A = (2, 5) → angle at A ≈ 54°, NOT 90°
 ═══════════════════════════════════════════
 COMMON CONSTRUCTIONS (copy these patterns)
 ═══════════════════════════════════════════
@@ -218,10 +232,11 @@ Circle tangent point:
   SetVisible(tang, false)
   Segment(P, T)
 
-Right angle at A (using rotation):
+Right triangle with right angle at A:
   B = (0, 0)
   C = (6, 0)
-  A = Rotate(B, 90°, C)             — or place A manually ensuring angle
+  A = (1, sqrt(5))          // ∠BAC = 90° guaranteed by Thales
+  Polygon(A, B, C)
 
 ═══════════════════════════════════════════
 EXAMPLES
@@ -233,7 +248,7 @@ EXAMPLES
   "commands": [
     "B = (0, 0)",
     "C = (6, 0)",
-    "A = (1.5, 3)",
+    "A = (1, sqrt(5))",
     "Polygon(A, B, C)",
     "lineBC = Line(B, C)",
     "perpAH = PerpendicularLine(A, lineBC)",
@@ -283,6 +298,7 @@ FINAL CHECKLIST (verify EVERY response):
 ✓ No manual coordinates for derived points
 ✓ showAxes is false unless user explicitly requested axes
 ✓ In continue mode, no redefined objects
+✓ Right-angle vertex uses V = (1, sqrt(d-1)) formula, NEVER guessed coordinates
 `;
 
 
