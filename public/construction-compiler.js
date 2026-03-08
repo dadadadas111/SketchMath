@@ -225,6 +225,14 @@
                 }
             }
         }
+
+        // Always hide axes and grid after reset (reset re-enables defaults)
+        if (typeof ggbApplet.setAxesVisible === 'function') {
+            ggbApplet.setAxesVisible(false, false);
+        }
+        if (typeof ggbApplet.setGridVisible === 'function') {
+            ggbApplet.setGridVisible(false);
+        }
     }
 
     /**
@@ -234,6 +242,13 @@
     function styleConstruction(ggbApplet) {
         if (!ggbApplet) return;
 
+        // Ensure axes and grid stay hidden
+        if (typeof ggbApplet.setAxesVisible === 'function') {
+            ggbApplet.setAxesVisible(false, false);
+        }
+        if (typeof ggbApplet.setGridVisible === 'function') {
+            ggbApplet.setGridVisible(false);
+        }
         var state = getConstructionState(ggbApplet);
         
         for (var i = 0; i < state.objects.length; i++) {

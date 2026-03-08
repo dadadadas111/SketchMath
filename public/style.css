@@ -59,16 +59,160 @@ html, body {
   height: 100vh;
 }
 
+/* === Sidebar === */
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform 250ms ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#sidebar.open {
+  transform: translateX(0);
+}
+
+#sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 199;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease;
+}
+
+#sidebar-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.btn-new-chat {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn-new-chat:hover {
+  background: var(--accent-hover);
+}
+
+#session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+#session-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+#session-list::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 2px;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin: 2px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.session-item:hover {
+  background: var(--bg-hover);
+}
+
+.session-item.active {
+  background: var(--accent-dim);
+  border-left: 3px solid var(--accent);
+}
+
+.session-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.session-topic {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.btn-delete-session {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.session-item:hover .btn-delete-session {
+  opacity: 1;
+}
+
+.btn-delete-session:hover {
+  color: var(--error);
+  background: rgba(248, 113, 113, 0.1);
+}
+
 /* === Header === */
 #header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   height: 48px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .header-left h1 {
@@ -119,10 +263,10 @@ html, body {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   transition: all var(--transition);
 }
@@ -154,91 +298,19 @@ html, body {
   cursor: not-allowed;
 }
 
-/* === Main Layout === */
+/* === Main Layout — single-column chat === */
 #main {
   flex: 1;
   display: flex;
   overflow: hidden;
 }
 
-/* === Canvas Panel (left) === */
-#canvas-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border-right: 1px solid var(--border);
-}
-
-#canvas-toolbar {
-  display: flex;
-  gap: 6px;
-  padding: 8px 12px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-#ggb-container {
-  flex: 1;
-  position: relative;
-  background: var(--bg-primary);
-  overflow: hidden;
-}
-
-#ggb-element {
-  width: 100%;
-  height: 100%;
-}
-
-/* GeoGebra iframe override */
-#ggb-element > div,
-#ggb-element > div > article,
-#ggb-element iframe {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: var(--bg-primary);
-  color: var(--text-muted);
-  font-size: 14px;
-  z-index: 10;
-  transition: opacity 300ms ease;
-}
-
-.loading-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* === Chat Panel (right) === */
 #chat-panel {
-  width: 380px;
-  min-width: 320px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
+  min-width: 0;
 }
 
 #chat-messages {
@@ -248,6 +320,9 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Scrollbar styling */
@@ -285,6 +360,7 @@ html, body {
   color: #fff;
   align-self: flex-end;
   border-bottom-right-radius: 2px;
+  max-width: 85%;
 }
 
 .message.assistant {
@@ -334,31 +410,40 @@ html, body {
   background: rgba(0,0,0,0.04);
 }
 
+/* === Inline Diagram (in chat) === */
+.inline-diagram {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+}
+
+.inline-diagram img {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  background: #fff;
+}
+
+.diagram-toolbar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+
 /* === Chat Input === */
 #chat-input-area {
   padding: 12px 16px;
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
   flex-shrink: 0;
-}
-
-#continue-toggle {
-  margin-bottom: 8px;
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.toggle-label input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 14px;
-  height: 14px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 #input-row {
@@ -404,22 +489,135 @@ html, body {
   flex-shrink: 0;
 }
 
+/* === Hidden GeoGebra Container (off-screen rendering) === */
+#ggb-hidden {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 800px;
+  height: 600px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#ggb-element {
+  width: 100%;
+  height: 100%;
+}
+
+/* GeoGebra iframe override */
+#ggb-element > div,
+#ggb-element > div > article,
+#ggb-element iframe {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-size: 14px;
+  z-index: 10;
+  transition: opacity 300ms ease;
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === GeoGebra Interactive Modal === */
+#ggb-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ggb-modal .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+#ggb-modal .modal-content {
+  position: relative;
+  width: 90vw;
+  max-width: 900px;
+  height: 80vh;
+  max-height: 700px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+#ggb-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+#ggb-modal-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* When ggb-element is inside the modal, make it fill the modal body */
+#ggb-modal-body #ggb-element {
+  width: 100%;
+  height: 100%;
+}
+
 /* === Responsive === */
 @media (max-width: 800px) {
-  #main {
-    flex-direction: column;
+  #chat-messages {
+    max-width: 100%;
+    padding: 12px;
   }
 
-  #canvas-panel {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    min-height: 40vh;
+  #chat-input-area {
+    max-width: 100%;
+    padding: 10px 12px;
   }
 
-  #chat-panel {
-    width: 100%;
-    min-width: unset;
-    flex: 1;
+  .message.user {
+    max-width: 92%;
+  }
+
+  #sidebar {
+    width: 260px;
   }
 }
 

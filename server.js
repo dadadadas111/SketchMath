@@ -59,6 +59,7 @@ GEOGEBRA CONSTRUCTION RULES (VERY IMPORTANT)
   ArcBetween(A, B, C)
   Circumcircle(A, B, C)
 - Place initial free points at reasonable visible coordinates (non-degenerate shapes).
+- Polygon(A, B, C) automatically creates the filled region AND its edges. Do NOT add separate Segment() calls for polygon sides — GeoGebra creates them automatically.
 - Dependent constructions are mandatory:
   * Define base/free points first.
   * Construct all derived points/lines/circles from constraints.
@@ -136,6 +137,7 @@ FINAL CHECK BEFORE YOU RESPOND
 - Are commands valid GeoGebra commands?
 - Did you avoid manual coordinates for derived points?
 - In continue mode, did you avoid redefining existing objects?
+- If you used Polygon(), did you avoid adding redundant Segment() for its edges?
 `;
 
 app.use(express.json({ limit: '1mb' }));

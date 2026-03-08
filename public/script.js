@@ -9,25 +9,29 @@
   let theme = 'dark';
   let ggbReady = false;
   let busy = false;
-  let history = [];
   let lastCommands = [];
 
-  // ─── DOM refs ────────────────────────────────────────────────────────
+  let sessions = [];
+  let activeSessionId = null;
+
   const $ = (sel) => document.querySelector(sel);
   const $messages = $('#chat-messages');
   const $input = $('#input-prompt');
   const $btnSend = $('#btn-send');
-  const $btnClear = $('#btn-clear');
-  const $btnRerender = $('#btn-rerender');
-  const $btnExport = $('#btn-export');
   const $btnLang = $('#btn-lang');
   const $btnTheme = $('#btn-theme');
-  const $cbContinue = $('#cb-continue');
   const $statusText = $('#status-text');
   const $statusObjects = $('#status-objects');
   const $ggbLoading = $('#ggb-loading');
+  const $ggbModal = $('#ggb-modal');
+  const $ggbModalBody = $('#ggb-modal-body');
+  const $btnCloseModal = $('#btn-close-modal');
 
-  // ─── i18n ────────────────────────────────────────────────────────────
+  const $sidebar = $('#sidebar');
+  const $sessionList = $('#session-list');
+  const $btnNewChat = $('#btn-new-chat');
+  const $btnSidebar = $('#btn-sidebar');
+  const $sidebarOverlay = $('#sidebar-overlay');
   async function loadStrings() {
     try {
       const res = await fetch('lang.json');
@@ -66,7 +70,7 @@
   // ─── GeoGebra Setup ─────────────────────────────────────────────────
   function initGeoGebra() {
     var params = {
-      appName: 'geometry',
+      appName: 'classic',
       width: 800,
       height: 600,
       showToolBar: false,
@@ -81,17 +85,225 @@
       appletOnLoad: function (api) {
         window.ggbApplet = api || window.ggbApplet;
         ggbReady = true;
+        // Hide axes and grid for pure geometry
+        if (api) {
+          api.setAxesVisible(false, false);
+          api.setGridVisible(false);
+        } else if (window.ggbApplet) {
+          window.ggbApplet.setAxesVisible(false, false);
+          window.ggbApplet.setGridVisible(false);
+        }
         $ggbLoading.classList.add('hidden');
         setStatus(t('ggbReady'));
       }
     };
-
     var applet = new GGBApplet(params, '5.0');
     applet.inject('ggb-element');
   }
 
+  // ─── Session Management ──────────────────────────────────────────────
+  function generateSessionId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  function generateTopic(message) {
+    var trimmed = message.trim();
+    if (trimmed.length <= 30) return trimmed;
+    var truncated = trimmed.substring(0, 30);
+    var lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 10) {
+      truncated = truncated.substring(0, lastSpace);
+    }
+    return truncated + '...';
+  }
+
+  function loadSessions() {
+    try {
+      var stored = localStorage.getItem('sm-sessions');
+      if (stored) sessions = JSON.parse(stored);
+    } catch (e) {
+      console.error('Failed to load sessions:', e);
+    }
+    if (!Array.isArray(sessions)) sessions = [];
+    
+    var activeId = localStorage.getItem('sm-active-session');
+    if (sessions.length === 0) {
+      createNewSession();
+    } else {
+      if (activeId && sessions.find(function(s) { return s.id === activeId; })) {
+        activeSessionId = activeId;
+      } else {
+        activeSessionId = sessions[0].id;
+      }
+    }
+  }
+
+  function saveSessions() {
+    localStorage.setItem('sm-sessions', JSON.stringify(sessions));
+  }
+
+  function saveActiveSessionId() {
+    if (activeSessionId) {
+      localStorage.setItem('sm-active-session', activeSessionId);
+    }
+  }
+
+  function getActiveSession() {
+    return sessions.find(function(s) { return s.id === activeSessionId; }) || sessions[0];
+  }
+
+  function createNewSession() {
+    var session = {
+      id: generateSessionId(),
+      topic: t('newChat') || 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    sessions.unshift(session);
+    activeSessionId = session.id;
+    saveSessions();
+    saveActiveSessionId();
+    renderSessionList();
+    restoreChat(session);
+    if (window.innerWidth <= 800) toggleSidebar(false);
+  }
+
+  function switchSession(id) {
+    if (activeSessionId === id) return;
+    activeSessionId = id;
+    saveActiveSessionId();
+    renderSessionList();
+    restoreChat(getActiveSession());
+    if (window.innerWidth <= 800) toggleSidebar(false);
+  }
+
+  function deleteSession(id, e) {
+    if (e) e.stopPropagation();
+    if (!confirm(t('deleteConfirm') || 'Delete this chat?')) return;
+    
+    sessions = sessions.filter(function(s) { return s.id !== id; });
+    
+    if (sessions.length === 0) {
+      createNewSession();
+    } else if (activeSessionId === id) {
+      saveSessions();
+      switchSession(sessions[0].id);
+    } else {
+      saveSessions();
+      renderSessionList();
+    }
+  }
+
+  function renderSessionList() {
+    $sessionList.innerHTML = '';
+    if (sessions.length === 0) {
+      var empty = document.createElement('div');
+      empty.style.padding = '16px';
+      empty.style.color = 'var(--text-muted)';
+      empty.style.fontSize = '12px';
+      empty.style.textAlign = 'center';
+      empty.textContent = t('noSessions') || 'No conversations yet';
+      $sessionList.appendChild(empty);
+      return;
+    }
+
+    sessions.forEach(function(session) {
+      var item = document.createElement('div');
+      item.className = 'session-item' + (session.id === activeSessionId ? ' active' : '');
+      item.onclick = function() { switchSession(session.id); };
+
+      var info = document.createElement('div');
+      info.className = 'session-info';
+      
+      var topic = document.createElement('div');
+      topic.className = 'session-topic';
+      topic.textContent = session.topic;
+      
+      var date = document.createElement('div');
+      date.className = 'session-date';
+      var d = new Date(session.updatedAt);
+      date.textContent = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      info.appendChild(topic);
+      info.appendChild(date);
+      item.appendChild(info);
+
+      var btnDelete = document.createElement('button');
+      btnDelete.className = 'btn-delete-session';
+      btnDelete.innerHTML = '✕';
+      btnDelete.title = t('deleteSession') || 'Delete';
+      btnDelete.onclick = function(e) { deleteSession(session.id, e); };
+      item.appendChild(btnDelete);
+
+      $sessionList.appendChild(item);
+    });
+  }
+
+  function restoreChat(session) {
+    $messages.innerHTML = '';
+    
+    // Re-add welcome message
+    var welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'message system';
+    var p = document.createElement('p');
+    p.setAttribute('data-i18n', 'welcome');
+    p.textContent = t('welcome');
+    welcomeDiv.appendChild(p);
+    $messages.appendChild(welcomeDiv);
+
+    // Reset GeoGebra visually if no history
+    if (session.messages.length === 0 && ggbReady) {
+      ConstructionCompiler.reset(ggbApplet);
+      updateObjectCount();
+    }
+
+    session.messages.forEach(function(msg) {
+      addMessageDOM(msg.role, msg.content, msg.commands, msg.diagramBase64);
+    });
+    $messages.scrollTop = $messages.scrollHeight;
+  }
+
+  function addMessageToSession(role, content, commands, diagramBase64) {
+    var session = getActiveSession();
+    
+    // Auto-generate topic on first user message
+    if (role === 'user' && session.messages.filter(function(m) { return m.role === 'user'; }).length === 0) {
+      session.topic = generateTopic(content);
+    }
+
+    session.messages.push({
+      role: role,
+      content: content,
+      commands: commands,
+      diagramBase64: diagramBase64,
+      timestamp: Date.now()
+    });
+    session.updatedAt = Date.now();
+    saveSessions();
+    renderSessionList();
+  }
+
+  function toggleSidebar(force) {
+    var isOpen = force !== undefined ? force : !$sidebar.classList.contains('open');
+    if (isOpen) {
+      $sidebar.classList.add('open');
+      $sidebarOverlay.classList.add('open');
+    } else {
+      $sidebar.classList.remove('open');
+      $sidebarOverlay.classList.remove('open');
+    }
+  }
+
   // ─── Chat UI ─────────────────────────────────────────────────────────
-  function addMessage(type, content, commands) {
+  function addMessage(role, content, commands, diagramBase64) {
+    addMessageDOM(role, content, commands, diagramBase64);
+    if (role !== 'status') {
+      addMessageToSession(role, content, commands, diagramBase64);
+    }
+  }
+
+  function addMessageDOM(type, content, commands, diagramBase64) {
     var div = document.createElement('div');
     div.className = 'message ' + type;
 
@@ -109,6 +321,47 @@
       cmdBlock.className = 'msg-commands';
       cmdBlock.textContent = commands.join('\n');
       div.appendChild(cmdBlock);
+
+      // Add inline diagram
+      try {
+        var base64 = diagramBase64 || '';
+        if (base64) {
+          var diagramCont = document.createElement('div');
+          diagramCont.className = 'inline-diagram';
+          diagramCont.dataset.commands = JSON.stringify(commands);
+
+          var img = document.createElement('img');
+          img.src = 'data:image/png;base64,' + base64;
+          diagramCont.appendChild(img);
+
+          var toolbar = document.createElement('div');
+          toolbar.className = 'diagram-toolbar';
+
+          var btnRerender = document.createElement('button');
+          btnRerender.className = 'btn-tool';
+          btnRerender.innerHTML = '🔄 ' + (t('rerender') || 'Rerender');
+          btnRerender.onclick = function() { handleInlineRerender(diagramCont); };
+
+          var btnExport = document.createElement('button');
+          btnExport.className = 'btn-tool';
+          btnExport.innerHTML = '📥 ' + (t('export') || 'Export');
+          btnExport.onclick = function() { handleInlineExport(img.src); };
+
+          var btnInteractive = document.createElement('button');
+          btnInteractive.className = 'btn-tool';
+          btnInteractive.innerHTML = '🔍 ' + (t('interactiveView') || 'Interactive');
+          btnInteractive.onclick = function() { showInteractiveModal(commands); };
+
+          toolbar.appendChild(btnRerender);
+          toolbar.appendChild(btnExport);
+          toolbar.appendChild(btnInteractive);
+          diagramCont.appendChild(toolbar);
+
+          div.appendChild(diagramCont);
+        }
+      } catch (e) {
+        console.error('Failed to generate PNG:', e);
+      }
     } else {
       var p = document.createElement('p');
       p.textContent = content;
@@ -119,7 +372,6 @@
     $messages.scrollTop = $messages.scrollHeight;
     return div;
   }
-
   function addThinking() {
     var div = document.createElement('div');
     div.className = 'message status';
@@ -175,11 +427,7 @@
       return { success: false, error: 'Validation failed: ' + validation.errors.join('; '), executed: 0, failed: commands.length };
     }
 
-    // If not in continue mode, clear first
-    if (!$cbContinue.checked) {
-      ConstructionCompiler.reset(ggbApplet);
-    }
-
+    ConstructionCompiler.reset(ggbApplet);
     // Execute
     var result = ConstructionCompiler.execute(ggbApplet, validation.cleanedCommands);
 
@@ -212,12 +460,11 @@
     // Show user message
     addMessage('user', prompt);
 
-    // Build conversation history for continue mode
-    var conversationHistory = $cbContinue.checked ? history.slice() : [];
-
-    // Update history
-    history.push({ role: 'user', content: prompt });
-
+    // Build conversation history from session
+    var session = getActiveSession();
+    var conversationHistory = session.messages.map(function(m) {
+      return { role: m.role, content: m.commands ? JSON.stringify({ explanation: m.content, commands: m.commands }) : m.content };
+    });
     var maxRetries = 3;
     var attempt = 0;
     var lastError = null;
@@ -250,19 +497,28 @@
           break;
         }
 
-        // Show explanation
-        setStatus(t('drawing'));
-        addMessage('assistant', aiResult.explanation || '', aiResult.commands);
-
-        // Execute construction
+        // Execute construction, then capture PNG after GeoGebra finishes rendering
         var execResult = executeConstruction(aiResult.commands);
 
         if (execResult.success) {
           // Save commands for rerender
           lastCommands = aiResult.commands;
+          setStatus(t('drawing'));
 
-          // Update history with AI response
-          history.push({ role: 'assistant', content: JSON.stringify({ explanation: aiResult.explanation, commands: aiResult.commands }) });
+          // Wait for GeoGebra to finish rendering before capturing PNG
+          var diagramBase64 = await new Promise(function(resolve) {
+            // refreshViews ensures pending draw ops complete
+            if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
+            // Re-assert axes/grid hidden right before capture
+            ggbApplet.setAxesVisible(false, false);
+            ggbApplet.setGridVisible(false);
+            setTimeout(function() {
+              try { resolve(ggbApplet.getPNGBase64(1, true, 72)); }
+              catch(e) { resolve(''); }
+            }, 150);
+          });
+
+          addMessage('assistant', aiResult.explanation || '', aiResult.commands, diagramBase64);
 
           // Report success
           var statusMsg = t('constructionOk', { n: execResult.executed });
@@ -282,7 +538,6 @@
             setStatus(t('retryFailed'));
           }
         }
-
       } catch (err) {
         removeThinking();
         lastError = err.message;
@@ -299,39 +554,70 @@
     $input.focus();
   }
 
-  // ─── Toolbar Actions ─────────────────────────────────────────────────
+  // ─── Inline Diagram Actions ──────────────────────────────────────────
+  function handleInlineRerender(diagramCont) {
+    if (!ggbReady) return;
+    var cmds = JSON.parse(diagramCont.dataset.commands);
+    ConstructionCompiler.reset(ggbApplet);
+    ConstructionCompiler.execute(ggbApplet, cmds);
+    ConstructionCompiler.styleConstruction(ggbApplet);
+    
+    // Wait for GeoGebra rendering to complete
+    if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
+    ggbApplet.setAxesVisible(false, false);
+    ggbApplet.setGridVisible(false);
+    setTimeout(function() {
+      try {
+        var base64 = ggbApplet.getPNGBase64(1, true, 72);
+        var img = diagramCont.querySelector('img');
+        if (img) img.src = 'data:image/png;base64,' + base64;
+        setStatus(t('rerendered') || 'Rerendered');
+      } catch (e) {
+        console.error(e);
+      }
+    }, 150);
+  }
+
+  function handleInlineExport(base64Src) {
+    var link = document.createElement('a');
+    link.download = 'sketchmath-' + Date.now() + '.png';
+    link.href = base64Src;
+    link.click();
+    setStatus(t('exported') || 'Exported PNG');
+  }
+
+  function showInteractiveModal(commands) {
+    if (!ggbReady) return;
+    // Move ggb-element to modal
+    $ggbModalBody.appendChild($('#ggb-element'));
+    $ggbModal.classList.remove('hidden');
+
+    // Re-execute so user sees the live construction
+    ConstructionCompiler.reset(ggbApplet);
+    ConstructionCompiler.execute(ggbApplet, commands);
+    ConstructionCompiler.styleConstruction(ggbApplet);
+    // Ensure axes/grid hidden in interactive mode too
+    if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
+    ggbApplet.setAxesVisible(false, false);
+    ggbApplet.setGridVisible(false);
+  }
+
+  function hideInteractiveModal() {
+    $ggbModal.classList.add('hidden');
+    // Move ggb-element back to hidden container
+    $('#ggb-hidden').appendChild($('#ggb-element'));
+  }
+
+  // ─── Toolbar Actions (Fallback/Global) ───────────────────────────────
   function handleClear() {
     if (!ggbReady) return;
     ConstructionCompiler.reset(ggbApplet);
-    history = [];
+    var session = getActiveSession(); if (session) { session.messages = []; saveSessions(); }
+    $messages.innerHTML = '';
     lastCommands = [];
     updateObjectCount();
-    setStatus(t('cleared'));
+    setStatus(t('cleared') || 'Cleared');
   }
-
-  function handleRerender() {
-    if (!ggbReady || lastCommands.length === 0) return;
-    ConstructionCompiler.reset(ggbApplet);
-    var result = ConstructionCompiler.execute(ggbApplet, lastCommands);
-    ConstructionCompiler.styleConstruction(ggbApplet);
-    updateObjectCount();
-    setStatus(t('rerendered'));
-  }
-
-  function handleExport() {
-    if (!ggbReady) return;
-    try {
-      var base64 = ggbApplet.getPNGBase64(1, true, 72);
-      var link = document.createElement('a');
-      link.download = 'sketchmath-' + Date.now() + '.png';
-      link.href = 'data:image/png;base64,' + base64;
-      link.click();
-      setStatus(t('exported'));
-    } catch {
-      setStatus(t('exportFail'));
-    }
-  }
-
   function toggleLang() {
     lang = lang === 'vi' ? 'en' : 'vi';
     localStorage.setItem('sm-lang', lang);
@@ -362,15 +648,18 @@
     applyI18n();
     applyTheme();
 
+    // Load sessions
+    loadSessions();
+
     // Bind events
     $btnSend.addEventListener('click', handleSend);
-    $btnClear.addEventListener('click', handleClear);
-    $btnRerender.addEventListener('click', handleRerender);
-    $btnExport.addEventListener('click', handleExport);
+    if ($btnCloseModal) $btnCloseModal.addEventListener('click', hideInteractiveModal);
     $btnLang.addEventListener('click', toggleLang);
     $btnTheme.addEventListener('click', toggleTheme);
+    $btnNewChat.addEventListener('click', createNewSession);
+    if ($btnSidebar) $btnSidebar.addEventListener('click', function() { toggleSidebar(); });
+    if ($sidebarOverlay) $sidebarOverlay.addEventListener('click', function() { toggleSidebar(false); });
     document.addEventListener('keydown', handleKeydown);
-
     // Init GeoGebra
     initGeoGebra();
   }

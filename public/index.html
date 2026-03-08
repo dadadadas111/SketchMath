@@ -9,9 +9,19 @@
 </head>
 <body>
   <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <button id="btn-new-chat" class="btn-new-chat" data-i18n="newChat">+ Trò chuyện mới</button>
+      </div>
+      <div id="session-list"></div>
+    </aside>
+    <div id="sidebar-overlay"></div>
+
     <!-- Header -->
     <header id="header">
       <div class="header-left">
+        <button id="btn-sidebar" class="btn-icon" title="Menu">☰</button>
         <h1>SketchMath <span class="version">v2</span></h1>
       </div>
       <div class="header-right">
@@ -20,25 +30,8 @@
       </div>
     </header>
 
-    <!-- Main layout -->
+    <!-- Chat panel (full width — no side canvas) -->
     <main id="main">
-      <!-- Left: GeoGebra canvas -->
-      <section id="canvas-panel">
-        <div id="canvas-toolbar">
-          <button id="btn-rerender" class="btn-tool" data-i18n="rerender">Vẽ lại</button>
-          <button id="btn-clear" class="btn-tool" data-i18n="clear">Xoá tất cả</button>
-          <button id="btn-export" class="btn-tool" data-i18n="export">Xuất PNG</button>
-        </div>
-        <div id="ggb-container">
-          <div id="ggb-element"></div>
-          <div id="ggb-loading" class="loading-overlay">
-            <div class="spinner"></div>
-            <span data-i18n="loadingGeoGebra">Đang tải GeoGebra...</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right: Chat panel -->
       <section id="chat-panel">
         <div id="chat-messages">
           <div class="message system">
@@ -47,12 +40,6 @@
         </div>
 
         <div id="chat-input-area">
-          <div id="continue-toggle">
-            <label class="toggle-label">
-              <input type="checkbox" id="cb-continue" />
-              <span data-i18n="continueMode">Chế độ tiếp tục</span>
-            </label>
-          </div>
           <div id="input-row">
             <textarea id="input-prompt" rows="2" placeholder="Nhập bài toán hình học..." data-i18n-placeholder="inputPlaceholder"></textarea>
             <button id="btn-send" class="btn-primary" data-i18n="send">Gửi</button>
@@ -66,6 +53,27 @@
       <span id="status-text" data-i18n="ready">Sẵn sàng</span>
       <span id="status-objects"></span>
     </footer>
+  </div>
+
+  <!-- Hidden off-screen GeoGebra container for rendering + PNG capture -->
+  <div id="ggb-hidden">
+    <div id="ggb-element"></div>
+    <div id="ggb-loading" class="loading-overlay">
+      <div class="spinner"></div>
+      <span data-i18n="loadingGeoGebra">Đang tải GeoGebra...</span>
+    </div>
+  </div>
+
+  <!-- Interactive modal for live GeoGebra interaction -->
+  <div id="ggb-modal" class="hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <span data-i18n="interactiveView">Chế độ tương tác</span>
+        <button id="btn-close-modal" class="btn-icon">✕</button>
+      </div>
+      <div id="ggb-modal-body"></div>
+    </div>
   </div>
 
   <script src="construction-compiler.js"></script>
