@@ -318,12 +318,46 @@
       text.textContent = content;
       div.appendChild(text);
 
-      var cmdBlock = document.createElement('div');
-      cmdBlock.className = 'msg-commands';
-      cmdBlock.textContent = commands.join('\n');
-      div.appendChild(cmdBlock);
+      // === Tabbed container ===
+      var tabsContainer = document.createElement('div');
+      tabsContainer.className = 'msg-tabs';
 
-      // Add inline diagram
+      // Tab header
+      var tabHeader = document.createElement('div');
+      tabHeader.className = 'tab-header';
+
+      var btnDiagramTab = document.createElement('button');
+      btnDiagramTab.className = 'tab-btn active';
+      btnDiagramTab.setAttribute('data-tab', 'diagram');
+      btnDiagramTab.textContent = t('diagram') || 'Diagram';
+
+      var btnCodeTab = document.createElement('button');
+      btnCodeTab.className = 'tab-btn';
+      btnCodeTab.setAttribute('data-tab', 'code');
+      btnCodeTab.textContent = t('code') || 'Code';
+
+      var btnCopyCode = document.createElement('button');
+      btnCopyCode.className = 'btn-copy-code';
+      btnCopyCode.innerHTML = '\ud83d\udccb ' + (t('copyCode') || 'Copy Code');
+      var commandsText = commands.join('\n');
+      btnCopyCode.onclick = function() {
+        navigator.clipboard.writeText(commandsText).then(function() {
+          btnCopyCode.innerHTML = '\u2705 ' + (t('copied') || 'Copied!');
+          setTimeout(function() {
+            btnCopyCode.innerHTML = '\ud83d\udccb ' + (t('copyCode') || 'Copy Code');
+          }, 2000);
+        });
+      };
+
+      tabHeader.appendChild(btnDiagramTab);
+      tabHeader.appendChild(btnCodeTab);
+      tabHeader.appendChild(btnCopyCode);
+      tabsContainer.appendChild(tabHeader);
+
+      // === Diagram tab (default active) ===
+      var diagramTab = document.createElement('div');
+      diagramTab.className = 'tab-content tab-diagram active';
+
       try {
         var base64 = diagramBase64 || '';
         if (base64) {
@@ -341,17 +375,17 @@
 
           var btnRerender = document.createElement('button');
           btnRerender.className = 'btn-tool';
-          btnRerender.innerHTML = '🔄 ' + (t('rerender') || 'Rerender');
+          btnRerender.innerHTML = '\ud83d\udd04 ' + (t('rerender') || 'Rerender');
           btnRerender.onclick = function() { handleInlineRerender(diagramCont); };
 
           var btnExport = document.createElement('button');
           btnExport.className = 'btn-tool';
-          btnExport.innerHTML = '📥 ' + (t('export') || 'Export');
+          btnExport.innerHTML = '\ud83d\udce5 ' + (t('export') || 'Export');
           btnExport.onclick = function() { handleInlineExport(img.src); };
 
           var btnInteractive = document.createElement('button');
           btnInteractive.className = 'btn-tool';
-          btnInteractive.innerHTML = '🔍 ' + (t('interactiveView') || 'Interactive');
+          btnInteractive.innerHTML = '\ud83d\udd0d ' + (t('interactiveView') || 'Interactive');
           btnInteractive.onclick = function() { showInteractiveModal(commands); };
 
           toolbar.appendChild(btnRerender);
@@ -359,11 +393,41 @@
           toolbar.appendChild(btnInteractive);
           diagramCont.appendChild(toolbar);
 
-          div.appendChild(diagramCont);
+          diagramTab.appendChild(diagramCont);
         }
       } catch (e) {
         console.error('Failed to generate PNG:', e);
       }
+
+      tabsContainer.appendChild(diagramTab);
+
+      // === Code tab ===
+      var codeTab = document.createElement('div');
+      codeTab.className = 'tab-content tab-code';
+
+      var cmdBlock = document.createElement('pre');
+      cmdBlock.className = 'msg-commands';
+      cmdBlock.textContent = commands.join('\n');
+      codeTab.appendChild(cmdBlock);
+
+      tabsContainer.appendChild(codeTab);
+
+      // === Tab switching logic ===
+      tabHeader.addEventListener('click', function(e) {
+        var btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        var tabName = btn.getAttribute('data-tab');
+        var allBtns = tabHeader.querySelectorAll('.tab-btn');
+        var allTabs = tabsContainer.querySelectorAll('.tab-content');
+        for (var i = 0; i < allBtns.length; i++) { allBtns[i].classList.remove('active'); }
+        for (var j = 0; j < allTabs.length; j++) { allTabs[j].classList.remove('active'); }
+        btn.classList.add('active');
+        var target = tabsContainer.querySelector('.tab-' + tabName);
+        if (target) target.classList.add('active');
+      });
+
+      div.appendChild(tabsContainer);
+
     } else if (type === 'error') {
       var p = document.createElement('p');
       p.textContent = content;
@@ -371,7 +435,7 @@
 
       var btnRetry = document.createElement('button');
       btnRetry.className = 'btn-retry';
-      btnRetry.textContent = '🔄 ' + (t('retry') || 'Retry');
+      btnRetry.textContent = '\ud83d\udd04 ' + (t('retry') || 'Retry');
       btnRetry.onclick = function() { handleRetry(); };
       div.appendChild(btnRetry);
     } else {
@@ -384,6 +448,7 @@
     $messages.scrollTop = $messages.scrollHeight;
     return div;
   }
+
   function addThinking() {
     var div = document.createElement('div');
     div.className = 'message status';
@@ -481,27 +546,29 @@
       session.messages.pop();
     }
     saveSessions();
-
-    // Remove error message elements from DOM
     var errorEls = $messages.querySelectorAll('.message.error');
     errorEls.forEach(function(el) { el.remove(); });
 
-    // Re-send
-    $input.value = lastUserMsg;
-    handleSend();
+    // Re-send without adding duplicate user message
+    sendPrompt(lastUserMsg, true);
   }
 
   // ─── Main Send Flow ──────────────────────────────────────────────────
   async function handleSend() {
     var prompt = $input.value.trim();
     if (!prompt || busy) return;
+    $input.value = '';
+    sendPrompt(prompt, false);
+  }
 
+  async function sendPrompt(prompt, isRetry) {
     busy = true;
     $btnSend.disabled = true;
-    $input.value = '';
 
-    // Show user message
-    addMessage('user', prompt);
+    // Show user message only if not a retry (it already exists in chat)
+    if (!isRetry) {
+      addMessage('user', prompt);
+    }
 
     // Build conversation history from session
     var session = getActiveSession();
