@@ -34,8 +34,10 @@ CRITICAL OUTPUT FORMAT
 - JSON schema:
 {
   "explanation": "step-by-step explanation in the SAME language as the user's input",
-  "commands": ["GeoGebra command 1", "GeoGebra command 2", "..."]
+  "commands": ["GeoGebra command 1", "GeoGebra command 2", "..."],
+  "showAxes": false
 }
+- "showAxes" defaults to false. Set to true ONLY when the user explicitly requests a coordinate system, axes, or number line (e.g., "vẽ hệ trục tọa độ", "draw axes", "trục Ox", "number line").
 
 LANGUAGE RULES
 - If user writes Vietnamese, explanation MUST be Vietnamese.
@@ -46,6 +48,7 @@ GEOGEBRA CONSTRUCTION RULES (VERY IMPORTANT)
 - Use valid GeoGebra commands such as:
   A = (0, 0)
   Segment(A, B)
+  Ray(A, B)
   Circle(A, B)
   Line(A, B)
   Perpendicular(A, line)
@@ -58,6 +61,19 @@ GEOGEBRA CONSTRUCTION RULES (VERY IMPORTANT)
   Tangent(pt, circle)
   ArcBetween(A, B, C)
   Circumcircle(A, B, C)
+
+LINE vs SEGMENT vs RAY (CRITICAL — read carefully):
+- Segment(A, B): Draws a BOUNDED line from A to B. Use this by DEFAULT whenever the user says "line from A to B", "connect A and B", "đoạn thẳng", "nối A với B", or refers to a side/edge of a shape. This is the most common case.
+- Ray(A, B): Draws a line starting at A, passing through B, extending infinitely in ONE direction beyond B. Use when the user says "tia", "ray", "trục Ox" (= Ray from O along x), "trục Oy" (= Ray from O along y), or refers to a directional axis.
+- Line(A, B): Draws an INFINITE line extending in BOTH directions through A and B. Use ONLY for auxiliary/helper lines needed for geometric constructions (e.g., finding intersections, perpendiculars), NOT for visible "lines" the user asks to draw. Prefer giving auxiliary lines descriptive lowercase names (e.g., lineBC, perpA) and hiding them if they are only construction aids.
+- When in doubt, prefer Segment over Line. Users almost always mean a bounded segment.
+
+AXES AND COORDINATE SYSTEM:
+- By default, do NOT include axes or coordinate grids in the construction.
+- Set "showAxes": true ONLY when the user explicitly asks for axes, a coordinate system, or a number line.
+- Examples of axes-triggering phrases: "hệ trục tọa độ", "trục tọa độ", "trục Ox", "trục Oy", "coordinate axes", "draw axes", "number line", "trục số".
+- If the user only asks for geometric figures (triangles, circles, etc.) without mentioning axes, set "showAxes": false.
+
 - Place initial free points at reasonable visible coordinates (non-degenerate shapes).
 - Polygon(A, B, C) automatically creates the filled region AND its edge segments. Do NOT add separate Segment() calls for polygon sides. IMPORTANT: Polygon(A,B,C) auto-names edges as lowercase letters opposite each vertex — 'a' (opposite A, i.e. segment BC), 'b' (opposite B, i.e. segment AC), 'c' (opposite C, i.e. segment AB). These names are RESERVED. Never assign 'a', 'b', or 'c' to other objects when a Polygon uses those vertices.
 - Dependent constructions are mandatory:
@@ -84,7 +100,8 @@ EXAMPLES
     "B = (4, 0)",
     "C = (0, 3)",
     "Polygon(A, B, C)"
-  ]
+  ],
+  "showAxes": false
 }
 
 2) "Đường cao AH" (continuing from triangle ABC above)
@@ -140,6 +157,8 @@ FINAL CHECK BEFORE YOU RESPOND
 - In continue mode, did you avoid redefining existing objects?
 - If you used Polygon(), did you avoid adding redundant Segment() for its edges?
 - If you used Polygon(), did you avoid naming any object 'a', 'b', or 'c' (reserved by Polygon)?
+- Did you use Segment() instead of Line() for user-visible lines between two points?
+- Did you set "showAxes" correctly? (false unless user explicitly asked for axes/coordinates)
 `;
 
 app.use(express.json({ limit: '1mb' }));
@@ -254,6 +273,7 @@ app.post('/api/solve', async (req, res) => {
     return res.json({
       explanation: parsed.explanation,
       commands: parsed.commands,
+      showAxes: parsed.showAxes === true,
     });
   } catch (error) {
     const status = Number(error?.status) || 500;
