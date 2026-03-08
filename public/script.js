@@ -578,6 +578,7 @@
     var maxRetries = 3;
     var attempt = 0;
     var lastError = null;
+    var lastFailedCommands = null;
 
     while (attempt < maxRetries) {
       attempt++;
@@ -591,10 +592,19 @@
       }
 
       try {
-        // Build prompt with error feedback for retries
+        // Build prompt with detailed error feedback for retries
         var aiPrompt = prompt;
         if (lastError && attempt > 1) {
-          aiPrompt = prompt + '\n\n[SYSTEM: Previous attempt failed with error: ' + lastError + '. Please fix the construction and try again. Make sure all GeoGebra commands are valid.]';
+          var errorFeedback = '\n\n[SYSTEM ERROR FEEDBACK — Attempt ' + (attempt - 1) + ' failed]\n';
+          errorFeedback += 'Error: ' + lastError + '\n';
+          if (lastFailedCommands && lastFailedCommands.length > 0) {
+            errorFeedback += 'Your previous commands that failed:\n';
+            for (var ei = 0; ei < lastFailedCommands.length; ei++) {
+              errorFeedback += '  ' + lastFailedCommands[ei] + '\n';
+            }
+          }
+          errorFeedback += '\nFix the errors and regenerate ALL commands from scratch. Do NOT reuse the broken commands. Double-check every command against the COMMAND REFERENCE.';
+          aiPrompt = prompt + errorFeedback;
         }
 
         // Call AI
@@ -607,7 +617,7 @@
           break;
         }
 
-        // Execute construction, then capture PNG after GeoGebra finishes rendering
+        // Execute construction
         var showAxes = aiResult.showAxes === true;
         var execResult = executeConstruction(aiResult.commands, showAxes);
 
@@ -619,9 +629,7 @@
 
           // Wait for GeoGebra to finish rendering before capturing PNG
           var diagramBase64 = await new Promise(function(resolve) {
-            // refreshViews ensures pending draw ops complete
             if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
-            // Apply axes visibility based on AI response
             ggbApplet.setAxesVisible(showAxes, showAxes);
             ggbApplet.setGridVisible(showAxes);
             setTimeout(function() {
@@ -635,24 +643,34 @@
           // Report success
           var statusMsg = t('constructionOk', { n: execResult.executed });
           if (execResult.verifyIssues && execResult.verifyIssues.length > 0) {
-            statusMsg += ' — ' + t('verifyFailed', { issues: execResult.verifyIssues.join(', ') });
+            statusMsg += ' \u2014 ' + t('verifyFailed', { issues: execResult.verifyIssues.join(', ') });
           }
           setStatus(statusMsg);
           break;
 
         } else {
-          // Partial failure — retry
-          var errorSummary = execResult.errors.map(function (e) { return e.command + ': ' + e.error; }).join('; ');
-          lastError = errorSummary || 'Construction failed';
+          // Construction failed — save error details for smarter retry
+          var errorDetails = [];
+          for (var ej = 0; ej < execResult.errors.length; ej++) {
+            var e = execResult.errors[ej];
+            errorDetails.push('Command "' + e.command + '" failed: ' + e.error);
+          }
+          lastError = errorDetails.join('; ');
+          lastFailedCommands = aiResult.commands;
+
+          // Reset GeoGebra to clean state for next attempt
+          ConstructionCompiler.reset(ggbApplet, showAxes);
 
           if (attempt >= maxRetries) {
-            addMessage('error', t('retryFailed'));
+            removeThinking();
+            addMessage('error', t('retryFailed') + '\n' + lastError);
             setStatus(t('retryFailed'));
           }
         }
       } catch (err) {
         removeThinking();
         lastError = err.message;
+        lastFailedCommands = null;
 
         if (attempt >= maxRetries) {
           addMessage('error', t('networkError') + ' ' + err.message);
