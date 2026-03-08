@@ -33,16 +33,17 @@
     <!-- Chat panel (full width — no side canvas) -->
     <main id="main">
       <section id="chat-panel">
-        <div id="chat-messages">
-          <div class="message system">
-            <p data-i18n="welcome">Xin chào! Nhập bài toán hình học để bắt đầu. Ví dụ: "Cho tam giác ABC vuông tại A, đường cao AH"</p>
-          </div>
-        </div>
+        <div id="chat-messages"></div>
 
         <div id="chat-input-area">
           <div id="input-row">
             <textarea id="input-prompt" rows="2" placeholder="Nhập bài toán hình học..." data-i18n-placeholder="inputPlaceholder"></textarea>
-            <button id="btn-send" class="btn-primary" data-i18n="send">Gửi</button>
+            <button id="btn-send" class="btn-send-icon" title="Send" aria-label="Send">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
           </div>
         </div>
       </section>

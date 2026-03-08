@@ -62,10 +62,10 @@ html, body {
 /* === Sidebar === */
 #sidebar {
   position: fixed;
-  top: 0;
+  top: 48px;
   left: 0;
   width: 280px;
-  height: 100vh;
+  height: calc(100vh - 48px);
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
   z-index: 200;
@@ -82,7 +82,10 @@ html, body {
 
 #sidebar-overlay {
   position: fixed;
-  inset: 0;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0,0,0,0.5);
   z-index: 199;
   opacity: 0;
@@ -751,3 +754,93 @@ html, body {
 
 .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
 .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* === Send Icon Button === */
+.btn-send-icon {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.btn-send-icon:hover {
+  background: var(--accent-hover);
+}
+
+.btn-send-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* === Empty State === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 32px 16px;
+  text-align: center;
+  min-height: 300px;
+}
+
+.empty-state-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.empty-state-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/* === Suggestion Chips === */
+.suggestion-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 480px;
+  width: 100%;
+}
+
+.suggestion-chip {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font);
+  line-height: 1.4;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+}
+
+.suggestion-chip:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+@media (max-width: 800px) {
+  .suggestion-chips {
+    grid-template-columns: 1fr;
+  }
+
+  .empty-state-title {
+    font-size: 22px;
+  }
+}

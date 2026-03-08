@@ -171,10 +171,16 @@ RULE 9 — INVALID COMMANDS (NEVER USE):
   Projection() → does not exist for points on lines
   Foot() → does not exist
 
-RULE 10 — CONTINUE MODE:
-  If conversation history exists, do NOT redefine existing points/objects.
-  Only add new commands to extend the figure.
-
+RULE 10 — CONTINUE MODE (CRITICAL):
+  When conversation history contains previous assistant messages with GeoGebra commands:
+  - Those objects ALREADY EXIST in the canvas. Do NOT redefine them.
+  - Reference existing points by name: A, B, C, etc. — they are already placed.
+  - Only output NEW commands that extend or modify the figure.
+  - If the user says "vẽ thêm" / "nối" / "add" / "draw also" — ADD to the existing construction.
+  - If the user gives a completely new problem — start fresh with all points.
+  - Example: Previous commands created triangle ABC. User says "nội tiếp đường tròn".
+    Correct: ["Circumcircle(A, B, C)"] — just one command, reusing existing A, B, C.
+    WRONG: Redefining A, B, C, O, creating new polygon from scratch.
 ═══════════════════════════════════════════
 COMMON CONSTRUCTIONS (copy these patterns)
 ═══════════════════════════════════════════
@@ -287,10 +293,27 @@ function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
   return history
     .filter((msg) => msg && typeof msg === 'object')
-    .map((msg) => ({
-      role: msg.role === 'assistant' ? 'assistant' : 'user',
-      content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content ?? ''),
-    }))
+    .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
+    .map((msg) => {
+      // For assistant messages that contain commands, format clearly
+      if (msg.role === 'assistant') {
+        let content = typeof msg.content === 'string' ? msg.content : '';
+        // If content is a stringified JSON with commands, reformat for clarity
+        try {
+          const parsed = JSON.parse(content);
+          if (parsed && parsed.commands && Array.isArray(parsed.commands)) {
+            content = (parsed.explanation || '') + '\n\nGeoGebra commands executed:\n' + parsed.commands.join('\n');
+          }
+        } catch {
+          // Not JSON, use as-is
+        }
+        return { role: 'assistant', content };
+      }
+      return {
+        role: 'user',
+        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content ?? ''),
+      };
+    })
     .filter((msg) => msg.content.trim().length > 0);
 }
 

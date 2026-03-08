@@ -129,13 +129,18 @@
     
     var activeId = localStorage.getItem('sm-active-session');
     if (sessions.length === 0) {
-      createNewSession();
+      // No sessions — show empty state, don't create session yet (lazy)
+      activeSessionId = null;
+      renderSessionList();
+      showEmptyState();
     } else {
       if (activeId && sessions.find(function(s) { return s.id === activeId; })) {
         activeSessionId = activeId;
       } else {
         activeSessionId = sessions[0].id;
       }
+      renderSessionList();
+      restoreChat(getActiveSession());
     }
   }
 
@@ -150,13 +155,24 @@
   }
 
   function getActiveSession() {
-    return sessions.find(function(s) { return s.id === activeSessionId; }) || sessions[0];
+    if (!activeSessionId) return null;
+    return sessions.find(function(s) { return s.id === activeSessionId; }) || null;
   }
 
   function createNewSession() {
+    // Lazy: just show empty state, don't create session object yet
+    activeSessionId = null;
+    renderSessionList();
+    showEmptyState();
+    if (window.innerWidth <= 800) toggleSidebar(false);
+  }
+
+  function ensureSession(firstMessage) {
+    // Actually create session object (called on first message)
+    if (activeSessionId) return getActiveSession();
     var session = {
       id: generateSessionId(),
-      topic: t('newChat') || 'New Chat',
+      topic: generateTopic(firstMessage),
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -166,8 +182,7 @@
     saveSessions();
     saveActiveSessionId();
     renderSessionList();
-    restoreChat(session);
-    if (window.innerWidth <= 800) toggleSidebar(false);
+    return session;
   }
 
   function switchSession(id) {
@@ -198,7 +213,9 @@
 
   function renderSessionList() {
     $sessionList.innerHTML = '';
-    if (sessions.length === 0) {
+    // Filter to only show sessions that have messages
+    var visibleSessions = sessions.filter(function(s) { return s.messages.length > 0; });
+    if (visibleSessions.length === 0) {
       var empty = document.createElement('div');
       empty.style.padding = '16px';
       empty.style.color = 'var(--text-muted)';
@@ -209,7 +226,7 @@
       return;
     }
 
-    sessions.forEach(function(session) {
+    visibleSessions.forEach(function(session) {
       var item = document.createElement('div');
       item.className = 'session-item' + (session.id === activeSessionId ? ' active' : '');
       item.onclick = function() { switchSession(session.id); };
@@ -241,23 +258,52 @@
     });
   }
 
-  function restoreChat(session) {
+  function showEmptyState() {
     $messages.innerHTML = '';
-    
-    // Re-add welcome message
-    var welcomeDiv = document.createElement('div');
-    welcomeDiv.className = 'message system';
-    var p = document.createElement('p');
-    p.setAttribute('data-i18n', 'welcome');
-    p.textContent = t('welcome');
-    welcomeDiv.appendChild(p);
-    $messages.appendChild(welcomeDiv);
+    var container = document.createElement('div');
+    container.className = 'empty-state';
 
-    // Reset GeoGebra visually if no history
-    if (session.messages.length === 0 && ggbReady) {
+    var title = document.createElement('div');
+    title.className = 'empty-state-title';
+    title.textContent = 'SketchMath';
+    container.appendChild(title);
+
+    var subtitle = document.createElement('div');
+    subtitle.className = 'empty-state-subtitle';
+    subtitle.textContent = t('emptyStateSubtitle');
+    container.appendChild(subtitle);
+
+    var chips = document.createElement('div');
+    chips.className = 'suggestion-chips';
+
+    var suggestions = ['suggestion1', 'suggestion2', 'suggestion3', 'suggestion4'];
+    suggestions.forEach(function(key) {
+      var chip = document.createElement('button');
+      chip.className = 'suggestion-chip';
+      chip.textContent = t(key);
+      chip.onclick = function() {
+        $input.value = t(key);
+        handleSend();
+      };
+      chips.appendChild(chip);
+    });
+
+    container.appendChild(chips);
+    $messages.appendChild(container);
+
+    // Reset GeoGebra if ready
+    if (ggbReady) {
       ConstructionCompiler.reset(ggbApplet);
       updateObjectCount();
     }
+  }
+
+  function restoreChat(session) {
+    if (!session || session.messages.length === 0) {
+      showEmptyState();
+      return;
+    }
+    $messages.innerHTML = '';
 
     session.messages.forEach(function(msg) {
       addMessageDOM(msg.role, msg.content, msg.commands, msg.diagramBase64);
@@ -266,7 +312,11 @@
   }
 
   function addMessageToSession(role, content, commands, diagramBase64) {
+    // Ensure a session exists (lazy creation on first message)
     var session = getActiveSession();
+    if (!session) {
+      session = ensureSession(content);
+    }
     
     // Auto-generate topic on first user message
     if (role === 'user' && session.messages.filter(function(m) { return m.role === 'user'; }).length === 0) {
@@ -565,6 +615,10 @@
     busy = true;
     $btnSend.disabled = true;
 
+    // Clear empty state on first message
+    var emptyState = $messages.querySelector('.empty-state');
+    if (emptyState) emptyState.remove();
+
     // Show user message only if not a retry (it already exists in chat)
     if (!isRetry) {
       addMessage('user', prompt);
@@ -572,9 +626,9 @@
 
     // Build conversation history from session
     var session = getActiveSession();
-    var conversationHistory = session.messages.map(function(m) {
+    var conversationHistory = session ? session.messages.map(function(m) {
       return { role: m.role, content: m.commands ? JSON.stringify({ explanation: m.content, commands: m.commands }) : m.content };
-    });
+    }) : [];
     var maxRetries = 3;
     var attempt = 0;
     var lastError = null;

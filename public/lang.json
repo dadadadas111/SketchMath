@@ -35,7 +35,12 @@
     "diagram": "Hình vẽ",
     "code": "Code",
     "copyCode": "Sao chép",
-    "copied": "Đã sao chép!"
+    "copied": "Đã sao chép!",
+    "emptyStateSubtitle": "Mô tả bài toán hình học để bắt đầu",
+    "suggestion1": "Tam giác ABC vuông tại A, đường cao AH",
+    "suggestion2": "Đường tròn (O) ngoại tiếp tam giác đều",
+    "suggestion3": "Hình bình hành ABCD, hai đường chéo cắt tại I",
+    "suggestion4": "Tam giác ABC, ba đường trung tuyến"
   },
   "en": {
     "rerender": "Rerender",
@@ -73,6 +78,11 @@
     "diagram": "Diagram",
     "code": "Code",
     "copyCode": "Copy Code",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "emptyStateSubtitle": "Describe a geometry problem to get started",
+    "suggestion1": "Right triangle ABC at A, altitude AH",
+    "suggestion2": "Circumscribed circle of equilateral triangle",
+    "suggestion3": "Parallelogram ABCD, diagonals intersect at I",
+    "suggestion4": "Triangle ABC, three medians"
   }
 }
