@@ -93,24 +93,46 @@
             var cmd = commands[i].trim();
             if (cmd === '') continue;
 
-            var execResult = ggbApplet.evalCommand(cmd);
-            
-            var expectedName = null;
-            var matchAssignment = cmd.match(/^([A-Za-z0-9_]+[A-Za-z0-9_{}']*)\s*[:=]/);
-            if (matchAssignment) {
-                expectedName = matchAssignment[1];
-            }
+            try {
+                // Handle scripting commands via JS API (not evalCommand)
+                var setVisibleMatch = cmd.match(/^SetVisible\(\s*([A-Za-z0-9_]+)\s*,\s*(true|false)\s*\)$/i);
+                if (setVisibleMatch) {
+                    var objName = setVisibleMatch[1];
+                    var visible = setVisibleMatch[2].toLowerCase() === 'true';
+                    if (ggbApplet.exists(objName)) {
+                        ggbApplet.setVisible(objName, visible);
+                        result.executed++;
+                    } else {
+                        result.failed++;
+                        result.success = false;
+                        result.errors.push({ index: i, command: cmd, error: "Object '" + objName + "' does not exist." });
+                    }
+                    continue;
+                }
 
-            if (execResult === false) {
+                var execResult = ggbApplet.evalCommand(cmd);
+
+                var expectedName = null;
+                var matchAssignment = cmd.match(/^([A-Za-z0-9_]+[A-Za-z0-9_{}']*)\s*[:=]/);
+                if (matchAssignment) {
+                    expectedName = matchAssignment[1];
+                }
+
+                if (execResult === false) {
+                    result.failed++;
+                    result.success = false;
+                    result.errors.push({ index: i, command: cmd, error: "evalCommand returned false." });
+                } else if (expectedName && !ggbApplet.exists(expectedName)) {
+                    result.failed++;
+                    result.success = false;
+                    result.errors.push({ index: i, command: cmd, error: "Expected object '" + expectedName + "' was not created." });
+                } else {
+                    result.executed++;
+                }
+            } catch (execErr) {
                 result.failed++;
                 result.success = false;
-                result.errors.push({ index: i, command: cmd, error: "evalCommand returned false." });
-            } else if (expectedName && !ggbApplet.exists(expectedName)) {
-                result.failed++;
-                result.success = false;
-                result.errors.push({ index: i, command: cmd, error: "Expected object '" + expectedName + "' was not created." });
-            } else {
-                result.executed++;
+                result.errors.push({ index: i, command: cmd, error: execErr.message || 'Unknown execution error' });
             }
         }
 
