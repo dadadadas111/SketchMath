@@ -31,7 +31,11 @@
     "deleteSession": "Xóa",
     "noSessions": "Chưa có cuộc trò chuyện nào",
     "interactiveView": "Chế độ tương tác",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "diagram": "Hình vẽ",
+    "code": "Code",
+    "copyCode": "Sao chép",
+    "copied": "Đã sao chép!"
   },
   "en": {
     "rerender": "Rerender",
@@ -65,6 +69,10 @@
     "deleteSession": "Delete",
     "noSessions": "No conversations yet",
     "interactiveView": "Interactive View",
-    "retry": "Retry"
+    "retry": "Retry",
+    "diagram": "Diagram",
+    "code": "Code",
+    "copyCode": "Copy Code",
+    "copied": "Copied!"
   }
 }

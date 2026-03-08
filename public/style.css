@@ -423,6 +423,83 @@ html, body {
   overflow-y: auto;
 }
 
+/* === Message Tabs === */
+.msg-tabs {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.tab-header {
+  display: flex;
+  align-items: center;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.btn-copy-code {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: color var(--transition);
+}
+
+.btn-copy-code:hover {
+  color: var(--text-primary);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Override msg-commands inside tabs */
+.tab-content .msg-commands {
+  margin-top: 0;
+  border-radius: 0;
+  border: none;
+  max-height: 300px;
+}
+
+/* Diagram inside tab */
+.tab-content .inline-diagram {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+}
+
 [data-theme="light"] .message .msg-commands {
   background: rgba(0,0,0,0.04);
 }
