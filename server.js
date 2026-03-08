@@ -238,56 +238,6 @@ Right triangle with right angle at A:
   A = (1, sqrt(5))          // ∠BAC = 90° guaranteed by Thales
   Polygon(A, B, C)
 
-═══════════════════════════════════════════
-EXAMPLES
-═══════════════════════════════════════════
-
-1) "Tam giác ABC vuông tại A, đường cao AH"
-{
-  "explanation": "Vẽ tam giác ABC vuông tại A. Kẻ đường cao AH từ A xuống BC.",
-  "commands": [
-    "B = (0, 0)",
-    "C = (6, 0)",
-    "A = (1, sqrt(5))",
-    "Polygon(A, B, C)",
-    "lineBC = Line(B, C)",
-    "perpAH = PerpendicularLine(A, lineBC)",
-    "H = Intersect(perpAH, lineBC)",
-    "SetVisible(lineBC, false)",
-    "SetVisible(perpAH, false)",
-    "Segment(A, H)"
-  ],
-  "showAxes": false
-}
-
-2) "Cho đường tròn (O), đường kính AB, C trên đường tròn"
-{
-  "explanation": "Vẽ đường tròn tâm O đường kính AB. Lấy điểm C trên đường tròn.",
-  "commands": [
-    "A = (0, 0)",
-    "B = (6, 0)",
-    "O = Midpoint(A, B)",
-    "circleO = Circle(O, A)",
-    "C = Intersect(circleO, Circle(A, 4), 1)",
-    "Segment(A, B)",
-    "Segment(A, C)",
-    "Segment(B, C)"
-  ],
-  "showAxes": false
-}
-
-3) "Tam giác đều ABC, cạnh 5"
-{
-  "explanation": "Vẽ tam giác đều ABC cạnh 5.",
-  "commands": [
-    "A = (0, 0)",
-    "B = (5, 0)",
-    "C = Rotate(B, 60°, A)",
-    "Polygon(A, B, C)"
-  ],
-  "showAxes": false
-}
-
 FINAL CHECKLIST (verify EVERY response):
 ✓ Output is strict JSON only — no markdown, no text outside JSON
 ✓ Explanation matches user's language
