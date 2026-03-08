@@ -208,6 +208,7 @@
      * Clears the GeoGebra construction.
      * @param {Object} ggbApplet - GeoGebra applet API instance.
      * @param {boolean} [showAxes=false] - Whether to show axes after reset.
+     */
     function reset(ggbApplet, showAxes) {
         if (!ggbApplet) return;
 
@@ -233,12 +234,14 @@
         }
         if (typeof ggbApplet.setGridVisible === 'function') {
             ggbApplet.setGridVisible(axesVisible);
+        }
     }
 
     /**
      * Applies visual styling to the objects in the construction.
      * @param {Object} ggbApplet - GeoGebra applet API instance.
      * @param {boolean} [showAxes=false] - Whether to show axes.
+     */
     function styleConstruction(ggbApplet, showAxes) {
         if (!ggbApplet) return;
 
