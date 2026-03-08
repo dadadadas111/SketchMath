@@ -207,8 +207,8 @@
     /**
      * Clears the GeoGebra construction.
      * @param {Object} ggbApplet - GeoGebra applet API instance.
-     */
-    function reset(ggbApplet) {
+     * @param {boolean} [showAxes=false] - Whether to show axes after reset.
+    function reset(ggbApplet, showAxes) {
         if (!ggbApplet) return;
 
         if (typeof ggbApplet.reset === 'function') {
@@ -226,28 +226,29 @@
             }
         }
 
-        // Always hide axes and grid after reset (reset re-enables defaults)
+        // Set axes and grid visibility based on parameter (default: hidden)
+        var axesVisible = showAxes === true;
         if (typeof ggbApplet.setAxesVisible === 'function') {
-            ggbApplet.setAxesVisible(false, false);
+            ggbApplet.setAxesVisible(axesVisible, axesVisible);
         }
         if (typeof ggbApplet.setGridVisible === 'function') {
-            ggbApplet.setGridVisible(false);
-        }
+            ggbApplet.setGridVisible(axesVisible);
     }
 
     /**
      * Applies visual styling to the objects in the construction.
      * @param {Object} ggbApplet - GeoGebra applet API instance.
-     */
-    function styleConstruction(ggbApplet) {
+     * @param {boolean} [showAxes=false] - Whether to show axes.
+    function styleConstruction(ggbApplet, showAxes) {
         if (!ggbApplet) return;
 
-        // Ensure axes and grid stay hidden
+        // Apply axes and grid visibility
+        var axesVisible = showAxes === true;
         if (typeof ggbApplet.setAxesVisible === 'function') {
-            ggbApplet.setAxesVisible(false, false);
+            ggbApplet.setAxesVisible(axesVisible, axesVisible);
         }
         if (typeof ggbApplet.setGridVisible === 'function') {
-            ggbApplet.setGridVisible(false);
+            ggbApplet.setGridVisible(axesVisible);
         }
         var state = getConstructionState(ggbApplet);
         

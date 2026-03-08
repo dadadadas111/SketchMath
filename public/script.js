@@ -10,6 +10,7 @@
   let ggbReady = false;
   let busy = false;
   let lastCommands = [];
+  let lastShowAxes = false;
 
   let sessions = [];
   let activeSessionId = null;
@@ -329,6 +330,7 @@
           var diagramCont = document.createElement('div');
           diagramCont.className = 'inline-diagram';
           diagramCont.dataset.commands = JSON.stringify(commands);
+          diagramCont.dataset.showAxes = String(lastShowAxes);
 
           var img = document.createElement('img');
           img.src = 'data:image/png;base64,' + base64;
@@ -418,7 +420,7 @@
   }
 
   // ─── Construction Execution ──────────────────────────────────────────
-  function executeConstruction(commands) {
+  function executeConstruction(commands, showAxes) {
     if (!ggbReady) throw new Error('GeoGebra not ready');
 
     // Validate first
@@ -427,12 +429,12 @@
       return { success: false, error: 'Validation failed: ' + validation.errors.join('; '), executed: 0, failed: commands.length };
     }
 
-    ConstructionCompiler.reset(ggbApplet);
+    ConstructionCompiler.reset(ggbApplet, showAxes);
     // Execute
     var result = ConstructionCompiler.execute(ggbApplet, validation.cleanedCommands);
 
     // Style
-    ConstructionCompiler.styleConstruction(ggbApplet);
+    ConstructionCompiler.styleConstruction(ggbApplet, showAxes);
 
     // Verify
     var verify = ConstructionCompiler.verifyConstraints(ggbApplet, validation.cleanedCommands);
@@ -498,20 +500,22 @@
         }
 
         // Execute construction, then capture PNG after GeoGebra finishes rendering
-        var execResult = executeConstruction(aiResult.commands);
+        var showAxes = aiResult.showAxes === true;
+        var execResult = executeConstruction(aiResult.commands, showAxes);
 
         if (execResult.success) {
-          // Save commands for rerender
+          // Save commands and axes state for rerender
           lastCommands = aiResult.commands;
+          lastShowAxes = showAxes;
           setStatus(t('drawing'));
 
           // Wait for GeoGebra to finish rendering before capturing PNG
           var diagramBase64 = await new Promise(function(resolve) {
             // refreshViews ensures pending draw ops complete
             if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
-            // Re-assert axes/grid hidden right before capture
-            ggbApplet.setAxesVisible(false, false);
-            ggbApplet.setGridVisible(false);
+            // Apply axes visibility based on AI response
+            ggbApplet.setAxesVisible(showAxes, showAxes);
+            ggbApplet.setGridVisible(showAxes);
             setTimeout(function() {
               try { resolve(ggbApplet.getPNGBase64(1, true, 72)); }
               catch(e) { resolve(''); }
@@ -558,14 +562,15 @@
   function handleInlineRerender(diagramCont) {
     if (!ggbReady) return;
     var cmds = JSON.parse(diagramCont.dataset.commands);
-    ConstructionCompiler.reset(ggbApplet);
+    var showAxes = diagramCont.dataset.showAxes === 'true';
+    ConstructionCompiler.reset(ggbApplet, showAxes);
     ConstructionCompiler.execute(ggbApplet, cmds);
-    ConstructionCompiler.styleConstruction(ggbApplet);
+    ConstructionCompiler.styleConstruction(ggbApplet, showAxes);
     
     // Wait for GeoGebra rendering to complete
     if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
-    ggbApplet.setAxesVisible(false, false);
-    ggbApplet.setGridVisible(false);
+    ggbApplet.setAxesVisible(showAxes, showAxes);
+    ggbApplet.setGridVisible(showAxes);
     setTimeout(function() {
       try {
         var base64 = ggbApplet.getPNGBase64(1, true, 72);
@@ -593,13 +598,13 @@
     $ggbModal.classList.remove('hidden');
 
     // Re-execute so user sees the live construction
-    ConstructionCompiler.reset(ggbApplet);
+    ConstructionCompiler.reset(ggbApplet, lastShowAxes);
     ConstructionCompiler.execute(ggbApplet, commands);
-    ConstructionCompiler.styleConstruction(ggbApplet);
-    // Ensure axes/grid hidden in interactive mode too
+    ConstructionCompiler.styleConstruction(ggbApplet, lastShowAxes);
+    // Apply axes visibility based on last known state
     if (typeof ggbApplet.refreshViews === 'function') ggbApplet.refreshViews();
-    ggbApplet.setAxesVisible(false, false);
-    ggbApplet.setGridVisible(false);
+    ggbApplet.setAxesVisible(lastShowAxes, lastShowAxes);
+    ggbApplet.setGridVisible(lastShowAxes);
   }
 
   function hideInteractiveModal() {
