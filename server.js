@@ -172,15 +172,16 @@ RULE 9 — INVALID COMMANDS (NEVER USE):
   Foot() → does not exist
 
 RULE 10 — CONTINUE MODE (CRITICAL):
-  When conversation history contains previous assistant messages with GeoGebra commands:
-  - Those objects ALREADY EXIST in the canvas. Do NOT redefine them.
-  - Reference existing points by name: A, B, C, etc. — they are already placed.
-  - Only output NEW commands that extend or modify the figure.
-  - If the user says "vẽ thêm" / "nối" / "add" / "draw also" — ADD to the existing construction.
-  - If the user gives a completely new problem — start fresh with all points.
-  - Example: Previous commands created triangle ABC. User says "nội tiếp đường tròn".
-    Correct: ["Circumcircle(A, B, C)"] — just one command, reusing existing A, B, C.
-    WRONG: Redefining A, B, C, O, creating new polygon from scratch.
+  When the user prompt starts with [CONTINUE MODE], a previous construction is LIVE on the canvas.
+  The listed objects ALREADY EXIST. You MUST:
+  - NEVER redefine any listed object. They are already placed and visible.
+  - Reference existing points/objects by their exact name.
+  - Output ONLY new commands that ADD to the existing construction.
+  - Even if the user repeats names like "tam giác ABC" or "triangle ABC" — these refer to the EXISTING objects, not a request to recreate them.
+  - The ONLY exception: user explicitly says "vẽ lại từ đầu" / "start over" / "redraw everything".
+  Example: Canvas has triangle ABC + altitude AH. User says "nội tiếp đường tròn O".
+    Correct: ["circleO = Circumcircle(A, B, C)"] — one command, reuses existing A, B, C.
+    WRONG: Redefining A=(0,0), B=(6,0), C=(...), Polygon(A,B,C) — these already exist!
 ═══════════════════════════════════════════
 COMMON CONSTRUCTIONS (copy these patterns)
 ═══════════════════════════════════════════
@@ -388,10 +389,34 @@ app.post('/api/solve', async (req, res) => {
 
   const sanitizedHistory = normalizeHistory(history);
 
+  // Build the user prompt — inject continuation context when history has commands
+  let userPrompt = prompt.trim();
+  if (sanitizedHistory.length > 0) {
+    // Extract object names from previous assistant commands
+    const existingObjects = [];
+    for (const msg of sanitizedHistory) {
+      if (msg.role === 'assistant') {
+        const cmdMatch = msg.content.match(/GeoGebra commands executed:\n([\s\S]+)/);
+        if (cmdMatch) {
+          cmdMatch[1].split('\n').forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            // Named assignments: A = (0,0), lineBC = Line(B,C)
+            const nameMatch = trimmed.match(/^([A-Za-z_]\w*)\s*=/);
+            if (nameMatch) existingObjects.push(nameMatch[1]);
+          });
+        }
+      }
+    }
+    if (existingObjects.length > 0) {
+      userPrompt = '[CONTINUE MODE] Objects on canvas: ' + existingObjects.join(', ') + '\n\n' + userPrompt;
+    }
+  }
+
   const messages = [
     { role: 'system', content: SYSTEM_PROMPT },
     ...sanitizedHistory,
-    { role: 'user', content: prompt.trim() },
+    { role: 'user', content: userPrompt },
   ];
 
   try {

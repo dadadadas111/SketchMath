@@ -619,16 +619,17 @@
     var emptyState = $messages.querySelector('.empty-state');
     if (emptyState) emptyState.remove();
 
-    // Show user message only if not a retry (it already exists in chat)
-    if (!isRetry) {
-      addMessage('user', prompt);
-    }
-
-    // Build conversation history from session
+    // Build conversation history BEFORE adding current user message
+    // to avoid sending the current prompt twice (once in history, once as prompt)
     var session = getActiveSession();
     var conversationHistory = session ? session.messages.map(function(m) {
       return { role: m.role, content: m.commands ? JSON.stringify({ explanation: m.content, commands: m.commands }) : m.content };
     }) : [];
+
+    // Show user message only if not a retry (it already exists in chat)
+    if (!isRetry) {
+      addMessage('user', prompt);
+    }
     var maxRetries = 3;
     var attempt = 0;
     var lastError = null;
