@@ -170,6 +170,7 @@ RULE 9 — INVALID COMMANDS (NEVER USE):
   FootOfAltitude() → does not exist
   Projection() → does not exist for points on lines
   Foot() → does not exist
+  Angle(A, B, C) → NEVER use. Angle markers are ugly and clutter the diagram. Do NOT mark angles.
 
 RULE 10 — CONTINUE MODE (CRITICAL):
   When the user prompt starts with [CONTINUE MODE], a previous construction is LIVE on the canvas.
