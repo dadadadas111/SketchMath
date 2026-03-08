@@ -59,7 +59,7 @@ GEOGEBRA CONSTRUCTION RULES (VERY IMPORTANT)
   ArcBetween(A, B, C)
   Circumcircle(A, B, C)
 - Place initial free points at reasonable visible coordinates (non-degenerate shapes).
-- Polygon(A, B, C) automatically creates the filled region AND its edges. Do NOT add separate Segment() calls for polygon sides — GeoGebra creates them automatically.
+- Polygon(A, B, C) automatically creates the filled region AND its edge segments. Do NOT add separate Segment() calls for polygon sides. IMPORTANT: Polygon(A,B,C) auto-names edges as lowercase letters opposite each vertex — 'a' (opposite A, i.e. segment BC), 'b' (opposite B, i.e. segment AC), 'c' (opposite C, i.e. segment AB). These names are RESERVED. Never assign 'a', 'b', or 'c' to other objects when a Polygon uses those vertices.
 - Dependent constructions are mandatory:
   * Define base/free points first.
   * Construct all derived points/lines/circles from constraints.
@@ -67,7 +67,8 @@ GEOGEBRA CONSTRUCTION RULES (VERY IMPORTANT)
   * Use Intersect, Midpoint, PerpendicularLine, Bisector, etc. so GeoGebra solves positions.
 - Naming conventions:
   * Points use uppercase labels: A, B, C, H, M, O, I, ...
-  * Lines/segments use lowercase labels where named: a, b, c, h, ...
+  * Auxiliary lines/objects use descriptive lowercase names: lineBC, perpA, bisectA, altH, ...
+  * NEVER use single lowercase letters (a, b, c, ...) as names — they collide with Polygon auto-names.
 
 CONTINUE MODE (history-aware)
 - If conversation history exists, continue from existing construction.
@@ -86,13 +87,13 @@ EXAMPLES
   ]
 }
 
-2) "Đường cao AH"
+2) "Đường cao AH" (continuing from triangle ABC above)
 {
   "explanation": "Kẻ đường thẳng qua A vuông góc với BC, giao điểm với BC là H, rồi nối AH.",
   "commands": [
-    "a = Line(B, C)",
-    "h = PerpendicularLine(A, a)",
-    "H = Intersect(h, a)",
+    "lineBC = Line(B, C)",
+    "perpA = PerpendicularLine(A, lineBC)",
+    "H = Intersect(perpA, lineBC)",
     "Segment(A, H)"
   ]
 }
@@ -138,6 +139,7 @@ FINAL CHECK BEFORE YOU RESPOND
 - Did you avoid manual coordinates for derived points?
 - In continue mode, did you avoid redefining existing objects?
 - If you used Polygon(), did you avoid adding redundant Segment() for its edges?
+- If you used Polygon(), did you avoid naming any object 'a', 'b', or 'c' (reserved by Polygon)?
 `;
 
 app.use(express.json({ limit: '1mb' }));
