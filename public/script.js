@@ -364,6 +364,16 @@
       } catch (e) {
         console.error('Failed to generate PNG:', e);
       }
+    } else if (type === 'error') {
+      var p = document.createElement('p');
+      p.textContent = content;
+      div.appendChild(p);
+
+      var btnRetry = document.createElement('button');
+      btnRetry.className = 'btn-retry';
+      btnRetry.textContent = '🔄 ' + (t('retry') || 'Retry');
+      btnRetry.onclick = function() { handleRetry(); };
+      div.appendChild(btnRetry);
     } else {
       var p = document.createElement('p');
       p.textContent = content;
@@ -448,6 +458,37 @@
       errors: result.errors,
       verifyIssues: verify.issues
     };
+  }
+
+  // ─── Retry ───────────────────────────────────────────────────────────
+  function handleRetry() {
+    if (busy) return;
+    var session = getActiveSession();
+    if (!session || session.messages.length === 0) return;
+
+    // Find the last user message
+    var lastUserMsg = null;
+    for (var i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].role === 'user') {
+        lastUserMsg = session.messages[i].content;
+        break;
+      }
+    }
+    if (!lastUserMsg) return;
+
+    // Remove trailing error messages from session and DOM
+    while (session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'error') {
+      session.messages.pop();
+    }
+    saveSessions();
+
+    // Remove error message elements from DOM
+    var errorEls = $messages.querySelectorAll('.message.error');
+    errorEls.forEach(function(el) { el.remove(); });
+
+    // Re-send
+    $input.value = lastUserMsg;
+    handleSend();
   }
 
   // ─── Main Send Flow ──────────────────────────────────────────────────

@@ -30,7 +30,8 @@
     "deleteConfirm": "Xóa cuộc trò chuyện này?",
     "deleteSession": "Xóa",
     "noSessions": "Chưa có cuộc trò chuyện nào",
-    "interactiveView": "Chế độ tương tác"
+    "interactiveView": "Chế độ tương tác",
+    "retry": "Thử lại"
   },
   "en": {
     "rerender": "Rerender",
@@ -63,6 +64,7 @@
     "deleteConfirm": "Delete this chat?",
     "deleteSession": "Delete",
     "noSessions": "No conversations yet",
-    "interactiveView": "Interactive View"
+    "interactiveView": "Interactive View",
+    "retry": "Retry"
   }
 }
