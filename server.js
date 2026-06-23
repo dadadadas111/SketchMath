@@ -253,6 +253,50 @@ FINAL CHECKLIST (verify EVERY response):
 `;
 
 
+// ─── In-memory rate limiter (5 requests/day per IP) ─────────────────────
+const rateLimitMap = new Map();
+const RATE_LIMIT = 5;
+
+function getDayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function rateLimitMiddleware(req, res, next) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const day = getDayKey();
+  const key = ip + ':' + day;
+
+  let entry = rateLimitMap.get(key);
+  if (!entry) {
+    entry = { count: 0 };
+    rateLimitMap.set(key, entry);
+  }
+
+  entry.count++;
+
+  res.setHeader('X-RateLimit-Limit', RATE_LIMIT);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, RATE_LIMIT - entry.count));
+
+  if (entry.count > RATE_LIMIT) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded. Maximum 5 requests per day per IP.',
+      retryAfter: 'next day',
+    });
+  }
+
+  next();
+}
+
+// ─── Periodic cleanup to prevent memory leak ───────────────────────────
+setInterval(() => {
+  const today = getDayKey();
+  for (const [key] of rateLimitMap) {
+    if (!key.endsWith(':' + today)) {
+      rateLimitMap.delete(key);
+    }
+  }
+}, 60 * 60 * 1000);
+
 app.use(express.json({ limit: '1mb' }));
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -345,7 +389,7 @@ function isValidResultShape(data) {
   );
 }
 
-app.post('/api/solve', async (req, res) => {
+app.post('/api/solve', rateLimitMiddleware, async (req, res) => {
   const { prompt, history } = req.body || {};
 
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
