@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +12,7 @@
     <!-- Sidebar -->
     <aside id="sidebar">
       <div class="sidebar-header">
-        <button id="btn-new-chat" class="btn-new-chat" data-i18n="newChat">+ Trò chuyện mới</button>
+        <button id="btn-new-chat" class="btn-new-chat" data-i18n="newChat">+ New Chat</button>
       </div>
       <div id="session-list"></div>
     </aside>
@@ -25,7 +25,7 @@
         <h1>SketchMath <span class="version">v2</span></h1>
       </div>
       <div class="header-right">
-        <button id="btn-lang" class="btn-icon" title="Switch language">VI</button>
+        <button id="btn-lang" class="btn-icon" title="Switch language">EN</button>
         <button id="btn-theme" class="btn-icon" title="Toggle theme">🌙</button>
       </div>
     </header>
@@ -37,7 +37,7 @@
 
         <div id="chat-input-area">
           <div id="input-row">
-            <textarea id="input-prompt" rows="2" placeholder="Nhập bài toán hình học..." data-i18n-placeholder="inputPlaceholder"></textarea>
+            <textarea id="input-prompt" rows="2" placeholder="Enter a geometry problem..." data-i18n-placeholder="inputPlaceholder"></textarea>
             <button id="btn-send" class="btn-send-icon" title="Send" aria-label="Send">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -51,7 +51,7 @@
 
     <!-- Status bar -->
     <footer id="status-bar">
-      <span id="status-text" data-i18n="ready">Sẵn sàng</span>
+      <span id="status-text" data-i18n="ready">Ready</span>
       <span id="status-objects"></span>
     </footer>
   </div>
@@ -61,7 +61,7 @@
     <div id="ggb-element"></div>
     <div id="ggb-loading" class="loading-overlay">
       <div class="spinner"></div>
-      <span data-i18n="loadingGeoGebra">Đang tải GeoGebra...</span>
+      <span data-i18n="loadingGeoGebra">Loading GeoGebra...</span>
     </div>
   </div>
 
@@ -70,7 +70,7 @@
     <div class="modal-backdrop"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <span data-i18n="interactiveView">Chế độ tương tác</span>
+        <span data-i18n="interactiveView">Interactive View</span>
         <button id="btn-close-modal" class="btn-icon">✕</button>
       </div>
       <div id="ggb-modal-body"></div>

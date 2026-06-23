@@ -4,7 +4,7 @@
   'use strict';
 
   // ─── State ───────────────────────────────────────────────────────────
-  let lang = 'vi';
+  let lang = 'en';
   let strings = {};
   let theme = 'dark';
   let ggbReady = false;
@@ -827,7 +827,7 @@
   // ─── Init ────────────────────────────────────────────────────────────
   async function init() {
     // Load saved preferences
-    lang = localStorage.getItem('sm-lang') || 'vi';
+    lang = localStorage.getItem('sm-lang') || 'en';
     theme = localStorage.getItem('sm-theme') || 'dark';
 
     await loadStrings();
